@@ -1,0 +1,37 @@
+# dependencies
+node_modules/
+
+# build outputs
+backend/dist/
+backend/coverage/
+frontend/.next/
+frontend/out/
+frontend/build/
+
+# IDEs
+.idea/
+.vscode/
+
+# env files
+.env
+.env.local
+.env.*.local
+backend/.env
+frontend/.env
+
+# backup & scripts
+.git_backups/
+replay_history.js
+replay_history.py
+
+# logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# system
+.DS_Store
+Thumbs.db

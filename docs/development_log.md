@@ -3,3 +3,4 @@
 * [2026-04-09T06:44:31+07:00] FossFalling: docs: update API endpoints description in readme
 * [2026-04-09T15:17:32+07:00] yoyozero10: Implement basic authentication and user modules
 * [2026-04-09T17:24:04+07:00] yoyozero10: Add JWT authentication and role-based access control
+* [2026-04-10T02:12:19+07:00] yoyozero10: docs: update developer onboarding guide in docs

@@ -5,3 +5,4 @@
 * [2026-04-09T17:24:04+07:00] yoyozero10: Add JWT authentication and role-based access control
 * [2026-04-10T02:12:19+07:00] yoyozero10: docs: update developer onboarding guide in docs
 * [2026-04-10T11:00:34+07:00] yoyozero10: Implement refresh token and password reset features
+* [2026-04-11T00:38:42+07:00] FossFalling: test: add integration test cases for checkout validation

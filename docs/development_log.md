@@ -12,3 +12,4 @@
 * [2026-04-13T07:11:17+07:00] yoyozero10: Add user profile and password update APIs
 * [2026-04-13T15:02:09+07:00] yoyozero10: docs: update developer onboarding guide in docs
 * [2026-04-13T22:53:01+07:00] yoyozero10: Add categories and products modules/entities
+* [2026-04-14T00:09:00+07:00] yoyozero10: Add DB seeding module and script

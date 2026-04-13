@@ -9,3 +9,4 @@
 * [2026-04-11T14:16:51+07:00] FossFalling: docs: update backend API documentation with status codes
 * [2026-04-12T03:55:00+07:00] yoyozero10: chore: update package dependencies and audit fixes
 * [2026-04-12T17:33:08+07:00] FossFalling: style: align admin dashboard cards layouts
+* [2026-04-13T07:11:17+07:00] yoyozero10: Add user profile and password update APIs

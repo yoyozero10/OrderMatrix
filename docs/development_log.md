@@ -14,3 +14,4 @@
 * [2026-04-13T22:53:01+07:00] yoyozero10: Add categories and products modules/entities
 * [2026-04-14T00:09:00+07:00] yoyozero10: Add DB seeding module and script
 * [2026-04-14T13:27:36+07:00] yoyozero10: Add Categories module, service, controller
+* [2026-04-15T02:39:22+07:00] yoyozero10: Add products API, DTOs, service & Postman

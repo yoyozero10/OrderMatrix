@@ -17,3 +17,4 @@
 * [2026-04-15T02:39:22+07:00] yoyozero10: Add products API, DTOs, service & Postman
 * [2026-04-15T15:03:35+07:00] yoyozero10: Add cart module, entities, service and GET /cart
 * [2026-04-16T05:36:08+07:00] yoyozero10: docs: update API endpoints description in readme
+* [2026-04-16T20:08:41+07:00] yoyozero10: Add cart item endpoints, DTOs, and service

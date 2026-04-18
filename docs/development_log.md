@@ -20,3 +20,4 @@
 * [2026-04-16T20:08:41+07:00] yoyozero10: Add cart item endpoints, DTOs, and service
 * [2026-04-17T03:08:03+07:00] yoyozero10: Add Orders module with entities and state machine
 * [2026-04-17T18:09:49+07:00] yoyozero10: docs: update API endpoints description in readme
+* [2026-04-18T09:11:35+07:00] yoyozero10: Add create-order endpoint and service

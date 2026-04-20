@@ -25,3 +25,4 @@
 * [2026-04-19T12:47:05+07:00] yoyozero10: Add orders list, detail and cancel APIs
 * [2026-04-19T19:32:32+07:00] yoyozero10: docs: update developer onboarding guide in docs
 * [2026-04-20T02:17:59+07:00] yoyozero10: Add admin product APIs, DTOs and service logic
+* [2026-04-20T18:04:16+07:00] FossFalling: test: add integration test cases for checkout validation

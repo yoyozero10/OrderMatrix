@@ -1,0 +1,1644 @@
+{
+    "info": {
+        "_postman_id": "e-commerce-api-collection",
+        "name": "E-commerce API",
+        "description": "API Collection cho Website Đặt Hàng và Quản Lý Đơn Hàng",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:3001/api",
+            "type": "string"
+        },
+        {
+            "key": "accessToken",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "refreshToken",
+            "value": "",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "Authentication",
+            "item": [
+                {
+                    "name": "1. Register",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 201) {",
+                                    "    console.log('✅ Đăng ký thành công!');",
+                                    "    const response = pm.response.json();",
+                                    "    console.log('User ID:', response.user.id);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Password123\",\n  \"fullName\": \"Nguyễn Văn A\",\n  \"phone\": \"0901234567\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/register",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "register"
+                            ]
+                        },
+                        "description": "Đăng ký tài khoản mới\n\n**Response 201:**\n- message: Đăng ký thành công\n- user: thông tin user\n\n**Errors:**\n- 400 AUTH_EMAIL_EXISTS"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "2. Login",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.collectionVariables.set('accessToken', response.accessToken);",
+                                    "    pm.collectionVariables.set('refreshToken', response.refreshToken);",
+                                    "    console.log('✅ Đăng nhập thành công!');",
+                                    "    console.log('Access Token đã được lưu');",
+                                    "    console.log('Refresh Token đã được lưu');",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"thang@gmail.com\",\n  \"password\": \"123456\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/login",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        },
+                        "description": "Đăng nhập và nhận tokens\n\n**Response 200:**\n- accessToken: JWT access token\n- refreshToken: JWT refresh token\n- user: thông tin user\n\n**Errors:**\n- 401 AUTH_INVALID_CREDENTIALS\n- 403 AUTH_ACCOUNT_LOCKED"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "3. Logout",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/logout",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "logout"
+                            ]
+                        },
+                        "description": "Đăng xuất (xóa refresh token)\n\n**Yêu cầu:** Bearer token\n\n**Response 200:**\n- message: Đăng xuất thành công"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "4. Refresh Token",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.collectionVariables.set('accessToken', response.accessToken);",
+                                    "    console.log('✅ Access token đã được làm mới!');",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/refresh",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "refresh"
+                            ]
+                        },
+                        "description": "Làm mới access token\n\n**Response 200:**\n- accessToken: JWT token mới\n\n**Errors:**\n- 401 AUTH_INVALID_TOKEN"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "5. Forgot Password",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"user@example.com\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/forgot-password",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "forgot-password"
+                            ]
+                        },
+                        "description": "Yêu cầu đặt lại mật khẩu\n\n**Response 200:**\n- message: Nếu email tồn tại...\n\n**Note:** Kiểm tra console server để lấy reset token"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "6. Reset Password",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"token\": \"PASTE_TOKEN_FROM_CONSOLE_HERE\",\n  \"newPassword\": \"NewPassword123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/reset-password",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "reset-password"
+                            ]
+                        },
+                        "description": "Đặt lại mật khẩu với token\n\n**Response 200:**\n- message: Đặt lại mật khẩu thành công\n\n**Errors:**\n- 400 AUTH_INVALID_RESET_TOKEN\n- 400 AUTH_RESET_TOKEN_EXPIRED"
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Các API xác thực"
+        },
+        {
+            "name": "Users",
+            "item": [
+                {
+                    "name": "7. Get My Profile",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    console.log('✅ Lấy profile thành công!');",
+                                    "    const response = pm.response.json();",
+                                    "    console.log('User:', response.fullName);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/users/me",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "users",
+                                "me"
+                            ]
+                        },
+                        "description": "Lấy thông tin profile của user đang đăng nhập\n\n**Yêu cầu:** Bearer token\n\n**Response 200:**\n- id, email, fullName, phone, avatar, role, status, createdAt, updatedAt\n- Password KHÔNG được trả về\n\n**Errors:**\n- 401 AUTH_UNAUTHORIZED"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "8. Update My Profile",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    console.log('✅ Cập nhật profile thành công!');",
+                                    "    const response = pm.response.json();",
+                                    "    console.log('New Name:', response.fullName);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"fullName\": \"Nguyễn Văn B\",\n  \"phone\": \"0909123456\",\n  \"avatar\": \"https://example.com/avatar.jpg\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/users/me",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "users",
+                                "me"
+                            ]
+                        },
+                        "description": "Cập nhật thông tin profile\n\n**Yêu cầu:** Bearer token\n\n**Body (tất cả optional):**\n- fullName: string (max 100)\n- phone: string (max 20)\n- avatar: string URL (max 500)\n\n**Không cho phép update:** email, role, status\n\n**Response 200:** User object đã cập nhật\n\n**Errors:**\n- 401 AUTH_UNAUTHORIZED\n- 400 Validation Error"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "9. Change Password",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    console.log('✅ Đổi mật khẩu thành công!');",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"oldPassword\": \"Password123\",\n  \"newPassword\": \"NewPassword456\",\n  \"confirmPassword\": \"NewPassword456\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/users/me/password",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "users",
+                                "me",
+                                "password"
+                            ]
+                        },
+                        "description": "Đổi mật khẩu\n\n**Yêu cầu:** Bearer token\n\n**Body:**\n- oldPassword: string (required)\n- newPassword: string (required, min 6)\n- confirmPassword: string (required, phải khớp)\n\n**Response 200:**\n- message: Đổi mật khẩu thành công\n\n**Errors:**\n- 401 AUTH_UNAUTHORIZED\n- 400 USER_INVALID_PASSWORD (mật khẩu cũ sai)\n- 400 USER_PASSWORD_MISMATCH (confirm không khớp)\n- 400 Validation Error"
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Các API quản lý thông tin user cá nhân"
+        },
+        {
+            "name": "Categories",
+            "item": [
+                {
+                    "name": "10. Get All Categories",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    console.log('✅ Lấy danh sách categories thành công!');",
+                                    "    const response = pm.response.json();",
+                                    "    console.log('Số lượng categories:', response.length);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/categories",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "categories"
+                            ]
+                        },
+                        "description": "Lấy danh sách tất cả categories\n\n**Public API** - Không cần authentication\n\n**Response 200:**\n- Array of categories\n- Mỗi category có productCount\n- Sắp xếp theo name"
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Các API liên quan đến danh mục sản phẩm"
+        },
+        {
+            "name": "Products",
+            "item": [
+                {
+                    "name": "11. Get Products List",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    console.log('✅ Lấy danh sách products thành công!');",
+                                    "    const response = pm.response.json();",
+                                    "    console.log('Total:', response.meta.total);",
+                                    "    console.log('Page:', response.meta.page + '/' + response.meta.totalPages);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/products?page=1&limit=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "products"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "10"
+                                },
+                                {
+                                    "key": "search",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "categoryId",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "minPrice",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "maxPrice",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "sortBy",
+                                    "value": "newest",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "Lấy danh sách sản phẩm với pagination, search, filter, sort\n\n**Public API**\n\n**Query Params:**\n- page (default: 1)\n- limit (default: 10)\n- search: tìm theo tên/mô tả\n- categoryId: lọc theo danh mục\n- minPrice, maxPrice: lọc theo giá\n- sortBy: price_asc, price_desc, newest, name_asc"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "12. Get Product Detail",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    console.log('✅ Lấy chi tiết product thành công!');",
+                                    "    const response = pm.response.json();",
+                                    "    console.log('Product:', response.name);",
+                                    "    console.log('Images:', response.images.length);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/products/:id",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "products",
+                                ":id"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "product-uuid-here"
+                                }
+                            ]
+                        },
+                        "description": "Lấy chi tiết sản phẩm với tất cả images\n\n**Public API**\n\n**Path Params:**\n- id: UUID của product\n\n**Response 200:** Product với category và images\n\n**Errors:**\n- 404 PRODUCT_NOT_FOUND"
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Các API liên quan đến sản phẩm"
+        },
+        {
+            "name": "Cart",
+            "item": [
+                {
+                    "name": "13. Get Cart",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    console.log('✅ Lấy giỏ hàng thành công!');",
+                                    "    const response = pm.response.json();",
+                                    "    console.log('Total Items:', response.totalItems);",
+                                    "    console.log('Total Amount:', response.totalAmount);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/cart",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "cart"
+                            ]
+                        },
+                        "description": "Lấy giỏ hàng của user hiện tại\n\n**Protected API** - Yêu cầu Bearer token\n\n**Response 200:**\n- id: Cart ID\n- items: Array cart items với product details và subtotal\n- totalItems: Tổng số lượng sản phẩm\n- totalAmount: Tổng tiền"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "14. Add to Cart",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 201) {",
+                                    "    console.log('✅ Thêm vào giỏ hàng thành công!');",
+                                    "    const response = pm.response.json();",
+                                    "    console.log('Total Items:', response.totalItems);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"productId\": \"product-uuid-here\",\n  \"quantity\": 1\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/cart/items",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "cart",
+                                "items"
+                            ]
+                        },
+                        "description": "Thêm sản phẩm vào giỏ hàng\n\n**Protected API**\n\n**Body:**\n- productId: UUID sản phẩm\n- quantity: số lượng (min 1)\n\n**Errors:**\n- 404 PRODUCT_NOT_FOUND\n- 400 CART_OUT_OF_STOCK"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "15. Update Cart Item",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    console.log('✅ Cập nhật giỏ hàng thành công!');",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"quantity\": 2\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/cart/items/:id",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "cart",
+                                "items",
+                                ":id"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "cart-item-uuid"
+                                }
+                            ]
+                        },
+                        "description": "Cập nhật số lượng cart item\n\n**Protected API**\n\n**Body:**\n- quantity: số lượng mới (min 1)\n\n**Errors:**\n- 404 CART_ITEM_NOT_FOUND\n- 403 CART_FORBIDDEN\n- 400 CART_OUT_OF_STOCK"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "16. Remove Cart Item",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    console.log('✅ Đã xóa sản phẩm khỏi giỏ hàng!');",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/cart/items/:id",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "cart",
+                                "items",
+                                ":id"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "cart-item-uuid"
+                                }
+                            ]
+                        },
+                        "description": "Xóa một sản phẩm khỏi giỏ hàng\n\n**Protected API**\n\n**Path Params:**\n- id: Cart item UUID\n\n**Errors:**\n- 404 CART_ITEM_NOT_FOUND\n- 403 CART_FORBIDDEN"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "17. Clear Cart",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    console.log('✅ Đã xóa toàn bộ giỏ hàng!');",
+                                    "    const response = pm.response.json();",
+                                    "    console.log('Message:', response.message);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/cart",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "cart"
+                            ]
+                        },
+                        "description": "Xóa toàn bộ giỏ hàng\n\n**Protected API**\n\n**Response 200:**\n- message: Đã xóa toàn bộ giỏ hàng"
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Các API liên quan đến giỏ hàng"
+        },
+        {
+            "name": "Orders",
+            "item": [
+                {
+                    "name": "18. Create Order",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 201) {",
+                                    "    console.log('✅ Đặt hàng thành công!');",
+                                    "    const response = pm.response.json();",
+                                    "    console.log('Order Code:', response.orderCode);",
+                                    "    console.log('Total:', response.totalAmount);",
+                                    "    pm.collectionVariables.set('orderId', response.id);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"shippingAddress\": {\n    \"fullName\": \"Nguyễn Văn A\",\n    \"phone\": \"0901234567\",\n    \"address\": \"123 Đường ABC\",\n    \"ward\": \"Phường 1\",\n    \"district\": \"Quận 1\",\n    \"city\": \"Hồ Chí Minh\"\n  },\n  \"paymentMethod\": \"COD\",\n  \"note\": \"Giao giờ hành chính\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/orders",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "orders"
+                            ]
+                        },
+                        "description": "Tạo đơn hàng từ giỏ hàng\n\n**Protected API**\n\n**Body:**\n- shippingAddress: { fullName, phone, address, ward, district, city }\n- paymentMethod: COD | MOCK (default: COD)\n- note: ghi chú (optional)\n\n**Flow:**\n1. Validate giỏ hàng không trống\n2. Lock + check stock từng sản phẩm\n3. Tạo order + snapshots\n4. Trừ stock\n5. Xóa giỏ hàng\n\n**Errors:**\n- 400 ORDER_CART_EMPTY\n- 400 CART_OUT_OF_STOCK\n- 400 ORDER_PRODUCT_NOT_FOUND"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "19. Get My Orders",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    console.log('✅ Lấy danh sách đơn hàng thành công!');",
+                                    "    const response = pm.response.json();",
+                                    "    console.log('Total:', response.meta.total);",
+                                    "    console.log('Page:', response.meta.page + '/' + response.meta.totalPages);",
+                                    "    if (response.data.length > 0) {",
+                                    "        pm.collectionVariables.set('orderId', response.data[0].id);",
+                                    "    }",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/orders?page=1&limit=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "orders"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "10"
+                                },
+                                {
+                                    "key": "orderStatus",
+                                    "value": "pending",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "Lấy danh sách đơn hàng của user\n\n**Protected API**\n\n**Query Params:**\n- page (default: 1)\n- limit (default: 10)\n- orderStatus: pending | processing | shipping | completed | cancelled (optional)\n\n**Response:** Danh sách summary (không có items), sắp xếp theo ngày tạo mới nhất"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "20. Get Order Detail",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    console.log('✅ Lấy chi tiết đơn hàng thành công!');",
+                                    "    const response = pm.response.json();",
+                                    "    console.log('Order Code:', response.orderCode);",
+                                    "    console.log('Items:', response.items.length);",
+                                    "    console.log('Status History:', response.statusHistory.length);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/orders/{{orderId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "orders",
+                                "{{orderId}}"
+                            ]
+                        },
+                        "description": "Lấy chi tiết đơn hàng với items và status history\n\n**Protected API**\n\n**Path Params:**\n- id: Order UUID\n\n**Response:** Full order với items (snapshots), status history\n\n**Errors:**\n- 404 ORDER_NOT_FOUND\n- 403 FORBIDDEN_RESOURCE"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "21. Cancel Order",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    console.log('✅ Hủy đơn hàng thành công!');",
+                                    "    const response = pm.response.json();",
+                                    "    console.log('Order Status:', response.orderStatus);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/orders/{{orderId}}/cancel",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "orders",
+                                "{{orderId}}",
+                                "cancel"
+                            ]
+                        },
+                        "description": "Hủy đơn hàng\n\n**Protected API**\n\n**Path Params:**\n- id: Order UUID\n\n**Điều kiện:** Chỉ hủy được khi status = pending\n\n**Flow:**\n1. Validate order thuộc user\n2. Check status = pending\n3. Update status → cancelled\n4. Hoàn stock cho từng sản phẩm\n5. Ghi status history\n\n**Errors:**\n- 404 ORDER_NOT_FOUND\n- 403 FORBIDDEN_RESOURCE\n- 400 ORDER_INVALID_TRANSITION"
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Các API liên quan đến đơn hàng"
+        },
+        {
+            "name": "Admin - Products",
+            "item": [
+                {
+                    "name": "22. Create Product",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Sản phẩm test\",\n  \"description\": \"Mô tả sản phẩm test\",\n  \"price\": 99000,\n  \"stock\": 50,\n  \"categoryId\": \"{{categoryId}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/admin/products",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "products"
+                            ]
+                        },
+                        "description": "Tạo sản phẩm mới\n\n**Admin only** - Cần @Roles('admin')\n\n**Body:**\n- name, description, price, stock, categoryId (required)\n- status: active | inactive (optional, default: active)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "23. Update Product",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Tên mới\",\n  \"price\": 199000\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/admin/products/{{productId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "products",
+                                "{{productId}}"
+                            ]
+                        },
+                        "description": "Cập nhật sản phẩm\n\n**Admin only**\n\n**Body:** Tất cả fields optional\n- name, description, price, stock, categoryId, status"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "24. Delete Product",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/admin/products/{{productId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "products",
+                                "{{productId}}"
+                            ]
+                        },
+                        "description": "Xóa sản phẩm (hard delete)\n\n**Admin only**\n\nImages tự động cascade delete"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "25. Add Product Image",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"imageUrl\": \"https://example.com/image.jpg\",\n  \"isPrimary\": true\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/admin/products/{{productId}}/images",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "products",
+                                "{{productId}}",
+                                "images"
+                            ]
+                        },
+                        "description": "Thêm ảnh cho sản phẩm\n\n**Admin only**\n\n**Body:**\n- imageUrl (required)\n- isPrimary (optional, auto true nếu ảnh đầu tiên)\n- displayOrder (optional)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "26. Delete Product Image",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/admin/products/{{productId}}/images/{{imageId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "products",
+                                "{{productId}}",
+                                "images",
+                                "{{imageId}}"
+                            ]
+                        },
+                        "description": "Xóa ảnh sản phẩm\n\n**Admin only**\n\nNếu xóa ảnh primary → tự động set ảnh khác làm primary"
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Quản lý sản phẩm - Admin only (cần role admin)"
+        },
+        {
+            "name": "Admin - Categories",
+            "item": [
+                {
+                    "name": "27. Create Category",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Danh mục test\",\n  \"description\": \"Mô tả danh mục test\",\n  \"image\": \"https://example.com/cat.jpg\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/admin/categories",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "categories"
+                            ]
+                        },
+                        "description": "Tạo danh mục mới\n\n**Admin only**\n\n**Body:**\n- name (required)\n- description (optional)\n- image (optional)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "28. Update Category",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Tên mới\",\n  \"description\": \"Mô tả mới\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/admin/categories/{{categoryId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "categories",
+                                "{{categoryId}}"
+                            ]
+                        },
+                        "description": "Cập nhật danh mục\n\n**Admin only**\n\n**Body:** Tất cả fields optional\n- name, description, image"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "29. Delete Category",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/admin/categories/{{categoryId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "categories",
+                                "{{categoryId}}"
+                            ]
+                        },
+                        "description": "Xóa danh mục\n\n**Admin only**\n\nChặn xóa nếu danh mục đang có sản phẩm (CATEGORY_HAS_PRODUCTS)"
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Quản lý danh mục - Admin only (cần role admin)"
+        },
+        {
+            "name": "Admin - Orders",
+            "item": [
+                {
+                    "name": "30. Get All Orders (Admin)",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/admin/orders?page=1&limit=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "orders"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "10"
+                                },
+                                {
+                                    "key": "orderStatus",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "search",
+                                    "value": "",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "Lấy tất cả đơn hàng (admin)\n\n**Admin only**\n\n**Query params:**\n- page, limit (pagination)\n- orderStatus: pending | processing | shipping | completed | cancelled\n- search: tìm theo mã đơn hàng hoặc tên khách hàng"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "31. Get Order Detail (Admin)",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/admin/orders/{{orderId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "orders",
+                                "{{orderId}}"
+                            ]
+                        },
+                        "description": "Lấy chi tiết đơn hàng (admin)\n\n**Admin only**\n\nKhông cần validate ownership. Bao gồm:\n- Customer info (fullName, email, phone)\n- Order items + product snapshots\n- Status history"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "32. Update Order Status",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"status\": \"processing\",\n  \"note\": \"Đang xử lý đơn hàng\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/admin/orders/{{orderId}}/status",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "orders",
+                                "{{orderId}}",
+                                "status"
+                            ]
+                        },
+                        "description": "Cập nhật trạng thái đơn hàng\n\n**Admin only**\n\n**Body:**\n- status (required): pending → processing → shipping → completed\n- note (optional)\n\n**Transitions:**\n- pending → processing, cancelled\n- processing → shipping, cancelled\n- shipping → completed\n- completed, cancelled → (không thể chuyển)\n\n**Side effects:**\n- cancelled → restore stock\n- completed + COD → paymentStatus = paid"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "33. Get Order Stats",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/admin/orders/stats",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "orders",
+                                "stats"
+                            ]
+                        },
+                        "description": "Thống kê đơn hàng\n\n**Admin only**\n\n**Response:**\n- totalOrders: tổng số đơn\n- totalRevenue: doanh thu (completed only)\n- ordersByStatus: { pending: N, processing: N, ... }\n- revenueByMonth: [{ month, revenue, orders }] (6 tháng gần nhất)"
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Quản lý đơn hàng - Admin only (cần role admin)"
+        },
+        {
+            "name": "Admin - Users",
+            "item": [
+                {
+                    "name": "34. Get All Users (Admin)",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/admin/users?page=1&limit=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "users"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "10"
+                                },
+                                {
+                                    "key": "role",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "search",
+                                    "value": "",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "Lấy danh sách users (admin)\n\n**Admin only**\n\n**Query params:**\n- page, limit (pagination)\n- role: customer | admin\n- search: tìm theo email hoặc tên\n\n**Response includes:** orderCount, totalSpent cho mỗi user"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "35. Get User Detail (Admin)",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/admin/users/{{userId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "users",
+                                "{{userId}}"
+                            ]
+                        },
+                        "description": "Lấy chi tiết user (admin)\n\n**Admin only**\n\n**Response includes:**\n- User info (không có password)\n- orderHistory: { totalOrders, totalSpent, completedRevenue, ordersByStatus }\n- recentOrders: 5 đơn hàng gần nhất"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "36. Update User Status",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"status\": \"inactive\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/admin/users/{{userId}}/status",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "users",
+                                "{{userId}}",
+                                "status"
+                            ]
+                        },
+                        "description": "Cập nhật status user\n\n**Admin only**\n\n**Body:** status: active | inactive\n\nKhông thể thay đổi status của chính mình (CANNOT_MODIFY_SELF)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "37. Update User Role",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{accessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"role\": \"admin\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/admin/users/{{userId}}/role",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "users",
+                                "{{userId}}",
+                                "role"
+                            ]
+                        },
+                        "description": "Cập nhật role user\n\n**Admin only**\n\n**Body:** role: customer | admin\n\nKhông thể thay đổi role của chính mình (CANNOT_MODIFY_SELF)"
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Quản lý users - Admin only (cần role admin)"
+        }
+    ]
+}

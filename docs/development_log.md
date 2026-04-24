@@ -31,3 +31,4 @@
 * [2026-04-22T17:23:06+07:00] FossFalling: style: align admin dashboard cards layouts
 * [2026-04-23T09:09:23+07:00] yoyozero10: Add admin categories endpoints and DTOs
 * [2026-04-23T19:46:11+07:00] yoyozero10: Add admin orders APIs and service logic
+* [2026-04-24T07:32:43+07:00] yoyozero10: Add admin users endpoints & service

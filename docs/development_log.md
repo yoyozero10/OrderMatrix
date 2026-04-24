@@ -33,3 +33,4 @@
 * [2026-04-23T19:46:11+07:00] yoyozero10: Add admin orders APIs and service logic
 * [2026-04-24T07:32:43+07:00] yoyozero10: Add admin users endpoints & service
 * [2026-04-24T17:12:51+07:00] yoyozero10: Add HTTP exception filter and business exceptions
+* [2026-04-24T21:18:40+07:00] yoyozero10: Add Winston logger and HTTP logging

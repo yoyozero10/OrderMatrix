@@ -35,3 +35,4 @@
 * [2026-04-24T17:12:51+07:00] yoyozero10: Add HTTP exception filter and business exceptions
 * [2026-04-24T21:18:40+07:00] yoyozero10: Add Winston logger and HTTP logging
 * [2026-04-25T04:27:42+07:00] yoyozero10: docs: update API endpoints description in readme
+* [2026-04-25T11:36:44+07:00] yoyozero10: Add Docker setup and API test suites

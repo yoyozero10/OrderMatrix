@@ -37,3 +37,4 @@
 * [2026-04-25T04:27:42+07:00] yoyozero10: docs: update API endpoints description in readme
 * [2026-04-25T11:36:44+07:00] yoyozero10: Add Docker setup and API test suites
 * [2026-04-26T06:00:30+07:00] FossFalling: docs: update API endpoints description in readme
+* [2026-04-27T00:24:15+07:00] yoyozero10: docs: update API endpoints description in readme

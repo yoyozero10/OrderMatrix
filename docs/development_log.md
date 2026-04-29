@@ -41,3 +41,4 @@
 * [2026-04-27T18:48:01+07:00] yoyozero10: docs: update API endpoints description in readme
 * [2026-04-28T13:11:47+07:00] FossFalling: docs: update API endpoints description in readme
 * [2026-04-29T07:35:32+07:00] yoyozero10: docs: update API endpoints description in readme
+* [2026-04-30T01:59:18+07:00] yoyozero10: Add Swagger docs and API decorators

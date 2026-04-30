@@ -43,3 +43,4 @@
 * [2026-04-29T07:35:32+07:00] yoyozero10: docs: update API endpoints description in readme
 * [2026-04-30T01:59:18+07:00] yoyozero10: Add Swagger docs and API decorators
 * [2026-04-30T07:57:41+07:00] yoyozero10: Add rate limiting, helmet, CORS & DB indexes
+* [2026-04-30T14:46:01+07:00] FossFalling: docs: update API endpoints description in readme

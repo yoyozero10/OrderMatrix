@@ -45,3 +45,4 @@
 * [2026-04-30T07:57:41+07:00] yoyozero10: Add rate limiting, helmet, CORS & DB indexes
 * [2026-04-30T14:46:01+07:00] FossFalling: docs: update API endpoints description in readme
 * [2026-04-30T21:34:21+07:00] yoyozero10: Enhance README, refactor auth and formatting
+* [2026-05-01T15:37:35+07:00] yoyozero10: refactor: optimize response payload serialization

@@ -50,3 +50,4 @@
 * [2026-05-03T03:44:02+07:00] yoyozero10: Add feature plan and expand tests/e2e flows
 * [2026-05-03T16:14:35+07:00] yoyozero10: Add cart order integration tests
 * [2026-05-04T15:19:33+07:00] FossFalling: test: add integration test cases for checkout validation
+* [2026-05-05T14:24:31+07:00] yoyozero10: docs: update backend API documentation with status codes

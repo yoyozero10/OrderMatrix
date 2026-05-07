@@ -52,3 +52,4 @@
 * [2026-05-04T15:19:33+07:00] FossFalling: test: add integration test cases for checkout validation
 * [2026-05-05T14:24:31+07:00] yoyozero10: docs: update backend API documentation with status codes
 * [2026-05-06T13:29:30+07:00] FossFalling: chore: update package dependencies and audit fixes
+* [2026-05-07T12:34:28+07:00] yoyozero10: test: verify cart calculations edge cases in tests

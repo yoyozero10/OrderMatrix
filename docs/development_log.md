@@ -54,3 +54,4 @@
 * [2026-05-06T13:29:30+07:00] FossFalling: chore: update package dependencies and audit fixes
 * [2026-05-07T12:34:28+07:00] yoyozero10: test: verify cart calculations edge cases in tests
 * [2026-05-08T11:39:26+07:00] FossFalling: style: format imports and clean up whitespace in codebase
+* [2026-05-09T10:44:24+07:00] FossFalling: style: standardise button component padding

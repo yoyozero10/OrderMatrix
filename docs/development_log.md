@@ -57,3 +57,4 @@
 * [2026-05-09T10:44:24+07:00] FossFalling: style: standardise button component padding
 * [2026-05-10T09:49:23+07:00] yoyozero10: test: write basic smoke test for products page
 * [2026-05-11T08:54:21+07:00] yoyozero10: style: fix lint warnings in frontend components
+* [2026-05-12T07:59:19+07:00] FossFalling: docs: add database schema diagram reference to docs

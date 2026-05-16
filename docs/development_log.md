@@ -62,3 +62,4 @@
 * [2026-05-14T06:09:16+07:00] yoyozero10: chore: add script to run database seeds quickly
 * [2026-05-15T05:14:14+07:00] FossFalling: docs: refine sprint planning objectives
 * [2026-05-16T04:19:12+07:00] FossFalling: refactor: optimize response payload serialization
+* [2026-05-17T03:24:10+07:00] FossFalling: refactor: simplify token extraction from request header

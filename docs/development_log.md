@@ -64,3 +64,4 @@
 * [2026-05-16T04:19:12+07:00] FossFalling: refactor: optimize response payload serialization
 * [2026-05-17T03:24:10+07:00] FossFalling: refactor: simplify token extraction from request header
 * [2026-05-18T02:29:09+07:00] yoyozero10: docs: update sprint progress log and checklist
+* [2026-05-19T01:34:07+07:00] FossFalling: refactor: extract validation pipes to common directory

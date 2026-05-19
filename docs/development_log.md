@@ -65,3 +65,4 @@
 * [2026-05-17T03:24:10+07:00] FossFalling: refactor: simplify token extraction from request header
 * [2026-05-18T02:29:09+07:00] yoyozero10: docs: update sprint progress log and checklist
 * [2026-05-19T01:34:07+07:00] FossFalling: refactor: extract validation pipes to common directory
+* [2026-05-20T00:39:05+07:00] FossFalling: chore: bootstrap Next.js frontend tooling

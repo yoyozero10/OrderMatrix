@@ -69,3 +69,4 @@
 * [2026-05-20T01:36:48+07:00] FossFalling: docs: add frontend readme and API spec
 * [2026-05-20T14:07:05+07:00] FossFalling: chore: add shared constants and utility helpers
 * [2026-05-20T21:48:48+07:00] yoyozero10: docs: update API endpoints description in readme
+* [2026-05-21T05:30:31+07:00] FossFalling: feat(api): add HTTP client

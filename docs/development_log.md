@@ -70,3 +70,4 @@
 * [2026-05-20T14:07:05+07:00] FossFalling: chore: add shared constants and utility helpers
 * [2026-05-20T21:48:48+07:00] yoyozero10: docs: update API endpoints description in readme
 * [2026-05-21T05:30:31+07:00] FossFalling: feat(api): add HTTP client
+* [2026-05-21T06:52:58+07:00] FossFalling: feat(api): define frontend API domain types

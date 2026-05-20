@@ -67,3 +67,4 @@
 * [2026-05-19T01:34:07+07:00] FossFalling: refactor: extract validation pipes to common directory
 * [2026-05-20T00:39:05+07:00] FossFalling: chore: bootstrap Next.js frontend tooling
 * [2026-05-20T01:36:48+07:00] FossFalling: docs: add frontend readme and API spec
+* [2026-05-20T14:07:05+07:00] FossFalling: chore: add shared constants and utility helpers

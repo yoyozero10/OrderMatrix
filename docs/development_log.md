@@ -73,3 +73,4 @@
 * [2026-05-21T06:52:58+07:00] FossFalling: feat(api): define frontend API domain types
 * [2026-05-21T16:21:51+07:00] FossFalling: feat(api): add typed service layer
 * [2026-05-21T23:09:59+07:00] FossFalling: docs: update API endpoints description in readme
+* [2026-05-22T05:58:06+07:00] FossFalling: feat(auth): add auth provider and route guard hook

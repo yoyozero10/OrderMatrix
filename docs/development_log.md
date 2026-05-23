@@ -79,3 +79,4 @@
 * [2026-05-23T02:45:02+07:00] yoyozero10: Add health endpoint, API docs, tests & DTO metadata
 * [2026-05-23T07:31:39+07:00] FossFalling: feat(ui): add button and card primitives
 * [2026-05-23T10:33:02+07:00] FossFalling: feat(ui): add form input primitives
+* [2026-05-23T21:16:08+07:00] FossFalling: feat(ui): add badge and section heading components

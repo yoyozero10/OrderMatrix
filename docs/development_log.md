@@ -77,3 +77,4 @@
 * [2026-05-22T08:26:30+07:00] FossFalling: feat(app): wire provider stack into root layout
 * [2026-05-22T19:26:06+07:00] FossFalling: feat(theme): configure global styles and tailwind theme tokens
 * [2026-05-23T02:45:02+07:00] yoyozero10: Add health endpoint, API docs, tests & DTO metadata
+* [2026-05-23T07:31:39+07:00] FossFalling: feat(ui): add button and card primitives

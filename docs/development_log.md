@@ -81,3 +81,4 @@
 * [2026-05-23T10:33:02+07:00] FossFalling: feat(ui): add form input primitives
 * [2026-05-23T21:16:08+07:00] FossFalling: feat(ui): add badge and section heading components
 * [2026-05-24T10:11:09+07:00] FossFalling: feat(layout): add responsive main header with account controls
+* [2026-05-24T13:12:33+07:00] FossFalling: feat(layout): add admin shell sidebar layout

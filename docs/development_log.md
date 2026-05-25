@@ -83,3 +83,4 @@
 * [2026-05-24T10:11:09+07:00] FossFalling: feat(layout): add responsive main header with account controls
 * [2026-05-24T13:12:33+07:00] FossFalling: feat(layout): add admin shell sidebar layout
 * [2026-05-25T00:12:08+07:00] FossFalling: feat(home): add marketing storefront landing experience
+* [2026-05-25T13:07:09+07:00] FossFalling: docs: update API endpoints description in readme

@@ -86,3 +86,4 @@
 * [2026-05-25T13:07:09+07:00] FossFalling: docs: update API endpoints description in readme
 * [2026-05-26T02:02:10+07:00] FossFalling: feat(product): add catalog filter and product card components
 * [2026-05-26T05:20:03+07:00] FossFalling: feat(auth): add login and registration pages
+* [2026-05-26T15:30:10+07:00] FossFalling: feat(product): add product details page

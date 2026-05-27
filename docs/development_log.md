@@ -88,3 +88,4 @@
 * [2026-05-26T05:20:03+07:00] FossFalling: feat(auth): add login and registration pages
 * [2026-05-26T15:30:10+07:00] FossFalling: feat(product): add product details page
 * [2026-05-27T03:52:13+07:00] FossFalling: feat(cart): add cart and checkout flow pages
+* [2026-05-27T11:50:25+07:00] FossFalling: docs: update API endpoints description in readme

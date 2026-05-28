@@ -90,3 +90,4 @@
 * [2026-05-27T03:52:13+07:00] FossFalling: feat(cart): add cart and checkout flow pages
 * [2026-05-27T11:50:25+07:00] FossFalling: docs: update API endpoints description in readme
 * [2026-05-27T19:48:37+07:00] FossFalling: feat(order): add orders list and detail pages
+* [2026-05-28T07:04:42+07:00] FossFalling: feat(profile): add profile page with avatar update support

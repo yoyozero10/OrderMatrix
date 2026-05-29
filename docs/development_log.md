@@ -92,3 +92,4 @@
 * [2026-05-27T19:48:37+07:00] FossFalling: feat(order): add orders list and detail pages
 * [2026-05-28T07:04:42+07:00] FossFalling: feat(profile): add profile page with avatar update support
 * [2026-05-29T02:27:14+07:00] yoyozero10: docs: update API endpoints description in readme
+* [2026-05-29T21:49:46+07:00] FossFalling: feat(admin): add dashboard metric card and summary view

@@ -94,3 +94,4 @@
 * [2026-05-29T02:27:14+07:00] yoyozero10: docs: update API endpoints description in readme
 * [2026-05-29T21:49:46+07:00] FossFalling: feat(admin): add dashboard metric card and summary view
 * [2026-05-30T01:24:08+07:00] FossFalling: feat(admin): add category management page
+* [2026-05-30T11:34:15+07:00] FossFalling: feat(admin): add user management page

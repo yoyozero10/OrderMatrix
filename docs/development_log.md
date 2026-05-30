@@ -96,3 +96,4 @@
 * [2026-05-30T01:24:08+07:00] FossFalling: feat(admin): add category management page
 * [2026-05-30T11:34:15+07:00] FossFalling: feat(admin): add user management page
 * [2026-05-30T18:26:30+07:00] yoyozero10: docs: update API endpoints description in readme
+* [2026-05-31T01:18:44+07:00] FossFalling: feat(admin): add order management pages

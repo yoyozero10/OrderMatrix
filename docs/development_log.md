@@ -99,3 +99,4 @@
 * [2026-05-31T01:18:44+07:00] FossFalling: feat(admin): add order management pages
 * [2026-05-31T15:19:43+07:00] yoyozero10: docs: update API endpoints description in readme
 * [2026-06-01T05:20:42+07:00] FossFalling: feat(admin): add product management with image operations
+* [2026-06-02T00:58:24+07:00] yoyozero10: docs: update API endpoints description in readme

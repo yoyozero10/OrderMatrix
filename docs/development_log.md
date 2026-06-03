@@ -101,3 +101,4 @@
 * [2026-06-01T05:20:42+07:00] FossFalling: feat(admin): add product management with image operations
 * [2026-06-02T00:58:24+07:00] yoyozero10: docs: update API endpoints description in readme
 * [2026-06-02T20:36:06+07:00] yoyozero10: docs: update API endpoints description in readme
+* [2026-06-03T16:13:48+07:00] FossFalling: docs: update API endpoints description in readme

@@ -102,3 +102,4 @@
 * [2026-06-02T00:58:24+07:00] yoyozero10: docs: update API endpoints description in readme
 * [2026-06-02T20:36:06+07:00] yoyozero10: docs: update API endpoints description in readme
 * [2026-06-03T16:13:48+07:00] FossFalling: docs: update API endpoints description in readme
+* [2026-06-04T11:51:30+07:00] FossFalling: docs: update API endpoints description in readme

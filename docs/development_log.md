@@ -106,3 +106,4 @@
 * [2026-06-05T07:29:12+07:00] FossFalling: docs: update API endpoints description in readme
 * [2026-06-06T03:06:54+07:00] FossFalling: docs: update API endpoints description in readme
 * [2026-06-06T22:44:36+07:00] FossFalling: docs: update API endpoints description in readme
+* [2026-06-07T18:22:18+07:00] FossFalling: docs: update API endpoints description in readme

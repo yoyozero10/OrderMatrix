@@ -163,6 +163,14 @@ export class CartService {
       }
 
       // 3. Lock product để check stock
+      if (!cartItem.product) {
+        throw new NotFoundException({
+          statusCode: 404,
+          errorCode: 'PRODUCT_NOT_FOUND',
+          message: 'Sản phẩm trong giỏ hàng không còn tồn tại',
+        });
+      }
+
       const product = await manager.findOne(Product, {
         where: { id: cartItem.product.id },
         lock: { mode: 'pessimistic_write' },
@@ -248,37 +256,42 @@ export class CartService {
    */
   private formatCartResponse(cart: Cart): any {
     const items =
-      cart.items?.map((item) => {
-        const product = item.product;
-        const primaryImage =
-          product.images?.find((img) => img.isPrimary)?.imageUrl ||
-          product.images?.[0]?.imageUrl ||
-          null;
-        const subtotal = Number(product.price) * item.quantity;
+      cart.items
+        ?.map((item) => {
+          const product = item.product;
+          if (!product) {
+            return null;
+          }
+          const primaryImage =
+            product.images?.find((img) => img.isPrimary)?.imageUrl ||
+            product.images?.[0]?.imageUrl ||
+            null;
+          const subtotal = Number(product.price) * item.quantity;
 
-        return {
-          id: item.id,
-          quantity: item.quantity,
-          product: {
-            id: product.id,
-            name: product.name,
-            price: Number(product.price),
-            stock: product.stock,
-            status: product.status,
-            primaryImage,
-            category: product.category
-              ? {
-                  id: product.category.id,
-                  name: product.category.name,
-                }
-              : null,
-          },
-          subtotal,
-        };
-      }) || [];
+          return {
+            id: item.id,
+            quantity: item.quantity,
+            product: {
+              id: product.id,
+              name: product.name,
+              price: Number(product.price),
+              stock: product.stock,
+              status: product.status,
+              primaryImage,
+              category: product.category
+                ? {
+                    id: product.category.id,
+                    name: product.category.name,
+                  }
+                : null,
+            },
+            subtotal,
+          };
+        })
+        .filter(Boolean) || [];
 
-    const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-    const totalAmount = items.reduce((sum, item) => sum + item.subtotal, 0);
+    const totalItems = items.reduce((sum, item) => sum + (item?.quantity || 0), 0);
+    const totalAmount = items.reduce((sum, item) => sum + (item?.subtotal || 0), 0);
 
     return {
       id: cart.id,

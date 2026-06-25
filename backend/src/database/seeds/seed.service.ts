@@ -1,9 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 import { Category } from '../../categories/entities/category.entity';
 import { Product } from '../../products/entities/product.entity';
 import { ProductImage } from '../../products/entities/product-image.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Injectable()
 export class SeedService {
@@ -24,6 +26,10 @@ export class SeedService {
 
     // Clear existing data
     await this.clearData();
+
+    // Seed users (Admin and Customer)
+    await this.seedUsers();
+    this.logger.log('✅ Đã tạo mock users (admin và customer)');
 
     // Seed categories
     const categories = await this.seedCategories();
@@ -50,12 +56,40 @@ export class SeedService {
       await queryRunner.query('TRUNCATE TABLE product_images');
       await queryRunner.query('TRUNCATE TABLE products');
       await queryRunner.query('TRUNCATE TABLE categories');
+      await queryRunner.query('TRUNCATE TABLE users');
 
       // Bật lại foreign key checks
       await queryRunner.query('SET FOREIGN_KEY_CHECKS = 1');
     } finally {
       await queryRunner.release();
     }
+  }
+
+  private async seedUsers() {
+    const userRepository = this.dataSource.getRepository(User);
+    
+    const hashedPassword = await bcrypt.hash('Password123', 10);
+    
+    const admin = userRepository.create({
+      email: 'admin@example.com',
+      password: hashedPassword,
+      fullName: 'Quản trị viên',
+      phone: '0123456789',
+      role: 'admin',
+      status: 'active',
+    });
+    
+    const customer = userRepository.create({
+      email: 'user@example.com',
+      password: hashedPassword,
+      fullName: 'Khách hàng mẫu',
+      phone: '0987654321',
+      role: 'customer',
+      status: 'active',
+    });
+    
+    await userRepository.save(admin);
+    await userRepository.save(customer);
   }
 
   private async seedCategories(): Promise<Category[]> {

@@ -56,7 +56,7 @@ Bạn chỉ cần Docker và Docker Compose ở thư mục gốc để chạy to
 
 1. **Khởi chạy container:**
    ```bash
-   docker-compose up -d --build
+   docker compose up -d --build
    ```
 2. **Kiểm tra trạng thái các service:**
    ```bash

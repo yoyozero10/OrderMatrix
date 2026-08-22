@@ -10,6 +10,7 @@ import { Order, OrderItem, OrderStatusHistory } from './entities';
 import { Cart } from '../cart/entities';
 import { CartItem } from '../cart/entities/cart-item.entity';
 import { Product } from '../products/entities/product.entity';
+import { ProductVariant } from '../products/entities/product-variant.entity';
 import { User } from '../users/entities/user.entity';
 import {
   CreateOrderDto,
@@ -41,6 +42,8 @@ export class OrdersService {
     private cartRepository: Repository<Cart>,
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
+    @InjectRepository(ProductVariant)
+    private variantRepository: Repository<ProductVariant>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private dataSource: DataSource,
@@ -83,10 +86,17 @@ export class OrdersService {
    */
   async createOrder(userId: string, dto: CreateOrderDto): Promise<any> {
     return await this.dataSource.transaction(async (manager) => {
-      // 1. Lấy cart với items
+      // 1. Lấy cart với items.variant (không còn items.product)
       const cart = await manager.findOne(Cart, {
         where: { user: { id: userId } },
-        relations: ['items', 'items.product'],
+        relations: [
+          'items',
+          'items.variant',
+          'items.variant.product',
+          'items.variant.optionValues',
+          'items.variant.optionValues.optionValue',
+          'items.variant.optionValues.optionValue.optionType',
+        ],
       });
 
       // Validate cart not empty
@@ -98,59 +108,93 @@ export class OrdersService {
         });
       }
 
-      // 2. Validate stock với FOR UPDATE lock + tính tổng tiền
+      // 2. Validate stock variant với FOR UPDATE lock + tính tổng tiền
       let totalAmount = 0;
       const orderItemsData: {
-        product: Product;
+        variant: ProductVariant;
         productNameSnapshot: string;
+        skuSnapshot: string;
+        variantSnapshot: Record<string, string>;
         unitPriceSnapshot: number;
         quantity: number;
         subtotal: number;
       }[] = [];
 
       for (const cartItem of cart.items) {
-        // Check stock with FOR UPDATE lock (pessimistic_write)
-        const product = await manager.findOne(Product, {
-          where: { id: cartItem.product.id },
+        if (!cartItem.variant) {
+          throw new BadRequestException({
+            statusCode: 400,
+            errorCode: 'ORDER_VARIANT_NOT_FOUND',
+            message: 'Một sản phẩm trong giỏ hàng không còn tồn tại',
+          });
+        }
+
+        // Lock variant row với FOR UPDATE
+        const variant = await manager.findOne(ProductVariant, {
+          where: { id: cartItem.variant.id },
+          relations: [
+            'product',
+            'optionValues',
+            'optionValues.optionValue',
+            'optionValues.optionValue.optionType',
+          ],
           lock: { mode: 'pessimistic_write' },
         });
 
-        if (!product) {
+        if (!variant || !variant.product) {
           throw new BadRequestException({
             statusCode: 400,
-            errorCode: 'ORDER_PRODUCT_NOT_FOUND',
-            message: `Sản phẩm "${cartItem.product.name}" không còn tồn tại`,
+            errorCode: 'ORDER_VARIANT_NOT_FOUND',
+            message: `Sản phẩm (variant: ${cartItem.variant.id}) không còn tồn tại`,
           });
         }
 
-        // If stock < quantity → Rollback
-        if (product.stock < cartItem.quantity) {
+        if (variant.status !== 'active') {
+          throw new BadRequestException({
+            statusCode: 400,
+            errorCode: 'ORDER_VARIANT_INACTIVE',
+            message: `Sản phẩm "${variant.product.name}" hiện không còn bán`,
+          });
+        }
+
+        // Check stock
+        if (variant.stock < cartItem.quantity) {
           throw new BadRequestException({
             statusCode: 400,
             errorCode: 'CART_OUT_OF_STOCK',
-            message: `Sản phẩm "${product.name}" chỉ còn ${product.stock} trong kho (yêu cầu ${cartItem.quantity})`,
+            message: `Sản phẩm "${variant.product.name}" (${variant.sku}) chỉ còn ${variant.stock} trong kho (yêu cầu ${cartItem.quantity})`,
           });
         }
 
-        // Tính snapshot values
-        const unitPriceSnapshot = Number(product.price);
+        // Build variantSnapshot: { "Màu sắc": "Xanh Titan", "Dung lượng": "256GB" }
+        const variantSnapshot: Record<string, string> = {};
+        for (const vov of variant.optionValues ?? []) {
+          if (vov.optionValue?.optionType?.name) {
+            variantSnapshot[vov.optionValue.optionType.name] =
+              vov.optionValue.value;
+          }
+        }
+
+        const unitPriceSnapshot = Number(variant.price);
         const subtotal = unitPriceSnapshot * cartItem.quantity;
         totalAmount += subtotal;
 
         orderItemsData.push({
-          product,
-          productNameSnapshot: product.name,
+          variant,
+          productNameSnapshot: variant.product.name,
+          skuSnapshot: variant.sku,
+          variantSnapshot,
           unitPriceSnapshot,
           quantity: cartItem.quantity,
           subtotal,
         });
 
-        // Update stock (atomic): stock = stock - quantity
+        // Deduct stock from variant (atomic)
         await manager
           .createQueryBuilder()
-          .update(Product)
+          .update(ProductVariant)
           .set({ stock: () => `stock - ${cartItem.quantity}` })
-          .where('id = :id', { id: product.id })
+          .where('id = :id', { id: variant.id })
           .execute();
       }
 
@@ -170,12 +214,14 @@ export class OrdersService {
 
       const savedOrder = await manager.save(order);
 
-      // 5. Create order items with snapshots
+      // 5. Create order items with snapshots (variant-aware)
       for (const itemData of orderItemsData) {
         const orderItem = manager.create(OrderItem, {
           order: { id: savedOrder.id } as Order,
-          product: { id: itemData.product.id } as Product,
+          variant: { id: itemData.variant.id } as ProductVariant,
           productNameSnapshot: itemData.productNameSnapshot,
+          skuSnapshot: itemData.skuSnapshot,
+          variantSnapshot: itemData.variantSnapshot,
           unitPriceSnapshot: itemData.unitPriceSnapshot,
           quantity: itemData.quantity,
           subtotal: itemData.subtotal,
@@ -183,7 +229,7 @@ export class OrdersService {
         await manager.save(orderItem);
       }
 
-      // 6. Create status history [Optional]
+      // 6. Create status history
       const statusHistory = manager.create(OrderStatusHistory, {
         order: { id: savedOrder.id } as Order,
         fromStatus: 'pending',
@@ -193,17 +239,17 @@ export class OrdersService {
       });
       await manager.save(statusHistory);
 
-      // 7. Clear cart - xóa tất cả cart items
+      // 7. Clear cart
       await manager.remove(cart.items);
 
-      // 8. Return created order (fetch full data)
+      // 8. Return created order
       const createdOrder = await manager.findOne(Order, {
         where: { id: savedOrder.id },
-        relations: ['items', 'items.product'],
+        relations: ['items', 'items.variant', 'items.variant.product'],
       });
 
       this.logger.log(
-        `Đơn hàng được tạo: ${createdOrder!.orderCode} - userId=${userId} - ${orderItemsData.length} sản phẩm - Tổng: ${totalAmount.toLocaleString()}đ`,
+        `Đơn hàng được tạo: ${createdOrder!.orderCode} - userId=${userId} - ${orderItemsData.length} variants - Tổng: ${totalAmount.toLocaleString()}đ`,
         this.context,
       );
 
@@ -270,7 +316,7 @@ export class OrdersService {
   async getOrderById(userId: string, orderId: string): Promise<any> {
     const order = await this.orderRepository.findOne({
       where: { id: orderId },
-      relations: ['items', 'items.product', 'user'],
+      relations: ['items', 'items.variant', 'items.variant.product', 'user'],
     });
 
     if (!order) {
@@ -318,10 +364,10 @@ export class OrdersService {
    */
   async cancelOrder(userId: string, orderId: string): Promise<any> {
     return await this.dataSource.transaction(async (manager) => {
-      // Lấy order với items
+      // Lấy order với items.variant
       const order = await manager.findOne(Order, {
         where: { id: orderId },
-        relations: ['items', 'items.product', 'user'],
+        relations: ['items', 'items.variant', 'user'],
         lock: { mode: 'pessimistic_write' },
       });
 
@@ -356,14 +402,16 @@ export class OrdersService {
       order.orderStatus = 'cancelled';
       await manager.save(order);
 
-      // Restore stock (atomic update)
+      // Restore stock vào variant (atomic update)
       for (const item of order.items) {
-        await manager
-          .createQueryBuilder()
-          .update(Product)
-          .set({ stock: () => `stock + ${item.quantity}` })
-          .where('id = :id', { id: item.product.id })
-          .execute();
+        if (item.variant?.id) {
+          await manager
+            .createQueryBuilder()
+            .update(ProductVariant)
+            .set({ stock: () => `stock + ${item.quantity}` })
+            .where('id = :id', { id: item.variant.id })
+            .execute();
+        }
       }
 
       // Create status history
@@ -379,7 +427,7 @@ export class OrdersService {
       // Return updated order
       const updatedOrder = await manager.findOne(Order, {
         where: { id: orderId },
-        relations: ['items', 'items.product'],
+        relations: ['items', 'items.variant', 'items.variant.product'],
       });
 
       return this.formatOrderResponse(updatedOrder!);
@@ -460,7 +508,7 @@ export class OrdersService {
   async getAdminOrderById(orderId: string): Promise<any> {
     const order = await this.orderRepository.findOne({
       where: { id: orderId },
-      relations: ['items', 'items.product', 'user'],
+      relations: ['items', 'items.variant', 'items.variant.product', 'user'],
     });
 
     if (!order) {
@@ -517,13 +565,21 @@ export class OrdersService {
         order.items?.map((item) => ({
           id: item.id,
           productNameSnapshot: item.productNameSnapshot,
+          skuSnapshot: item.skuSnapshot ?? null,
+          variantSnapshot: item.variantSnapshot ?? null,
           unitPriceSnapshot: Number(item.unitPriceSnapshot),
           quantity: item.quantity,
           subtotal: Number(item.subtotal),
-          product: item.product
+          variant: item.variant
             ? {
-                id: item.product.id,
-                name: item.product.name,
+                id: item.variant.id,
+                sku: item.variant.sku,
+                product: item.variant.product
+                  ? {
+                      id: item.variant.product.id,
+                      name: item.variant.product.name,
+                    }
+                  : null,
               }
             : null,
         })) || [],
@@ -544,7 +600,7 @@ export class OrdersService {
     return await this.dataSource.transaction(async (manager) => {
       const order = await manager.findOne(Order, {
         where: { id: orderId },
-        relations: ['items', 'items.product', 'user'],
+        relations: ['items', 'items.variant', 'user'],
         lock: { mode: 'pessimistic_write' },
       });
 
@@ -575,15 +631,17 @@ export class OrdersService {
         order.paymentStatus = 'paid';
       }
 
-      // Nếu cancelled → restore stock
+      // Nếu cancelled → restore stock vào variant
       if (dto.status === 'cancelled') {
         for (const item of order.items) {
-          await manager
-            .createQueryBuilder()
-            .update(Product)
-            .set({ stock: () => `stock + ${item.quantity}` })
-            .where('id = :id', { id: item.product.id })
-            .execute();
+          if (item.variant?.id) {
+            await manager
+              .createQueryBuilder()
+              .update(ProductVariant)
+              .set({ stock: () => `stock + ${item.quantity}` })
+              .where('id = :id', { id: item.variant.id })
+              .execute();
+          }
         }
       }
 
@@ -604,10 +662,10 @@ export class OrdersService {
       // Return updated order
       const updatedOrder = await manager.findOne(Order, {
         where: { id: orderId },
-        relations: ['items', 'items.product'],
+        relations: ['items', 'items.variant', 'items.variant.product'],
       });
       this.logger.log(
-        `Chuyển trạng thái đơn hàng: ${order.orderCode} (${oldStatus} → ${dto.status}) - adminId=${adminId}${dto.status === 'cancelled' ? ' [CANCELLED - stock restored]' : ''}`,
+        `Chuyển trạng thái đơn hàng: ${order.orderCode} (${oldStatus} → ${dto.status}) - adminId=${adminId}${dto.status === 'cancelled' ? ' [CANCELLED - variant stock restored]' : ''}`,
         this.context,
       );
 

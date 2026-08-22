@@ -4,6 +4,7 @@ import { Order, OrderItem, OrderStatusHistory } from './entities';
 import { Cart } from '../cart/entities';
 import { CartItem } from '../cart/entities/cart-item.entity';
 import { Product } from '../products/entities/product.entity';
+import { ProductVariant } from '../products/entities/product-variant.entity';
 import { User } from '../users/entities/user.entity';
 import { OrdersService } from './orders.service';
 import { OrdersController } from './orders.controller';
@@ -18,6 +19,7 @@ import { AdminOrdersController } from './admin-orders.controller';
       Cart,
       CartItem,
       Product,
+      ProductVariant,
       User,
     ]),
   ],

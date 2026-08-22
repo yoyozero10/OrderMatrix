@@ -8,7 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Cart, CartItem } from './entities';
 import { User } from '../users/entities/user.entity';
-import { Product } from '../products/entities/product.entity';
+import { ProductVariant } from '../products/entities/product-variant.entity';
 import { AddToCartDto, UpdateCartItemDto } from './dto';
 
 @Injectable()
@@ -18,9 +18,9 @@ export class CartService {
     private cartRepository: Repository<Cart>,
     @InjectRepository(CartItem)
     private cartItemRepository: Repository<CartItem>,
-    @InjectRepository(Product)
-    private productRepository: Repository<Product>,
-    private dataSource: DataSource, // Inject DataSource for transactions
+    @InjectRepository(ProductVariant)
+    private variantRepository: Repository<ProductVariant>,
+    private dataSource: DataSource,
   ) {}
 
   /**
@@ -32,9 +32,12 @@ export class CartService {
       where: { user: { id: userId } },
       relations: [
         'items',
-        'items.product',
-        'items.product.images',
-        'items.product.category',
+        'items.variant',
+        'items.variant.product',
+        'items.variant.product.images',
+        'items.variant.optionValues',
+        'items.variant.optionValues.optionValue',
+        'items.variant.optionValues.optionValue.optionType',
       ],
     });
 
@@ -51,38 +54,47 @@ export class CartService {
 
   /**
    * API 14/37: POST /cart/items [MVP]
-   * Thêm sản phẩm vào giỏ hàng
+   * Thêm variant vào giỏ hàng
    * Sử dụng transaction + pessimistic locking để tránh race condition
    */
   async addToCart(userId: string, dto: AddToCartDto): Promise<any> {
     await this.dataSource.transaction(async (manager) => {
-      // 1. Lock product row để tránh race condition
-      const product = await manager.findOne(Product, {
-        where: { id: dto.productId },
+      // 1. Lock variant row để tránh race condition
+      const variant = await manager.findOne(ProductVariant, {
+        where: { id: dto.variantId },
+        relations: ['product'],
         lock: { mode: 'pessimistic_write' },
       });
 
-      if (!product) {
+      if (!variant) {
         throw new NotFoundException({
           statusCode: 404,
-          errorCode: 'PRODUCT_NOT_FOUND',
-          message: 'Không tìm thấy sản phẩm',
+          errorCode: 'VARIANT_NOT_FOUND',
+          message: 'Không tìm thấy sản phẩm (variant)',
+        });
+      }
+
+      if (variant.status !== 'active') {
+        throw new BadRequestException({
+          statusCode: 400,
+          errorCode: 'VARIANT_INACTIVE',
+          message: 'Sản phẩm này hiện không còn bán',
         });
       }
 
       // 2. Check stock availability
-      if (product.stock < dto.quantity) {
+      if (variant.stock < dto.quantity) {
         throw new BadRequestException({
           statusCode: 400,
           errorCode: 'CART_OUT_OF_STOCK',
-          message: `Sản phẩm chỉ còn ${product.stock} trong kho`,
+          message: `Sản phẩm chỉ còn ${variant.stock} trong kho`,
         });
       }
 
       // 3. Get or create cart
       let cart = await manager.findOne(Cart, {
         where: { user: { id: userId } },
-        relations: ['items', 'items.product'],
+        relations: ['items', 'items.variant'],
       });
 
       if (!cart) {
@@ -93,22 +105,22 @@ export class CartService {
         cart = await manager.save(cart);
       }
 
-      // 4. Check if item already exists in cart
+      // 4. Check if this variant already exists in cart
       let cartItem = await manager.findOne(CartItem, {
         where: {
           cart: { id: cart.id },
-          product: { id: dto.productId },
+          variant: { id: dto.variantId },
         },
       });
 
       if (cartItem) {
         // Update quantity
         const newQuantity = cartItem.quantity + dto.quantity;
-        if (newQuantity > product.stock) {
+        if (newQuantity > variant.stock) {
           throw new BadRequestException({
             statusCode: 400,
             errorCode: 'CART_OUT_OF_STOCK',
-            message: `Không thể thêm. Tổng số lượng vượt quá tồn kho (${product.stock})`,
+            message: `Không thể thêm. Tổng số lượng vượt quá tồn kho (${variant.stock})`,
           });
         }
         cartItem.quantity = newQuantity;
@@ -117,7 +129,7 @@ export class CartService {
         // Create new cart item
         cartItem = manager.create(CartItem, {
           cart: { id: cart.id } as Cart,
-          product: { id: dto.productId } as Product,
+          variant: { id: dto.variantId } as ProductVariant,
           quantity: dto.quantity,
         });
         await manager.save(cartItem);
@@ -130,7 +142,7 @@ export class CartService {
 
   /**
    * API 15/37: PUT /cart/items/:id [MVP]
-   * Cập nhật số lượng cart item (cũng dùng transaction + locking)
+   * Cập nhật số lượng cart item
    */
   async updateCartItem(
     userId: string,
@@ -138,10 +150,10 @@ export class CartService {
     dto: UpdateCartItemDto,
   ): Promise<any> {
     await this.dataSource.transaction(async (manager) => {
-      // 1. Find cart item with relations và lock
+      // 1. Find cart item với relations
       const cartItem = await manager.findOne(CartItem, {
         where: { id: itemId },
-        relations: ['cart', 'cart.user', 'product'],
+        relations: ['cart', 'cart.user', 'variant'],
         lock: { mode: 'pessimistic_write' },
       });
 
@@ -162,25 +174,25 @@ export class CartService {
         });
       }
 
-      // 3. Lock product để check stock
-      if (!cartItem.product) {
+      // 3. Lock variant để check stock
+      if (!cartItem.variant) {
         throw new NotFoundException({
           statusCode: 404,
-          errorCode: 'PRODUCT_NOT_FOUND',
+          errorCode: 'VARIANT_NOT_FOUND',
           message: 'Sản phẩm trong giỏ hàng không còn tồn tại',
         });
       }
 
-      const product = await manager.findOne(Product, {
-        where: { id: cartItem.product.id },
+      const variant = await manager.findOne(ProductVariant, {
+        where: { id: cartItem.variant.id },
         lock: { mode: 'pessimistic_write' },
       });
 
-      if (!product || dto.quantity > product.stock) {
+      if (!variant || dto.quantity > variant.stock) {
         throw new BadRequestException({
           statusCode: 400,
           errorCode: 'CART_OUT_OF_STOCK',
-          message: `Sản phẩm chỉ còn ${product?.stock || 0} trong kho`,
+          message: `Sản phẩm chỉ còn ${variant?.stock || 0} trong kho`,
         });
       }
 
@@ -189,16 +201,14 @@ export class CartService {
       await manager.save(cartItem);
     });
 
-    // Return updated cart
     return this.getCart(userId);
   }
 
   /**
    * API 16/37: DELETE /cart/items/:id [MVP]
-   * Xóa một sản phẩm khỏi giỏ hàng
+   * Xóa một item khỏi giỏ hàng
    */
   async removeCartItem(userId: string, itemId: string): Promise<any> {
-    // 1. Find cart item with relations
     const cartItem = await this.cartItemRepository.findOne({
       where: { id: itemId },
       relations: ['cart', 'cart.user'],
@@ -212,7 +222,6 @@ export class CartService {
       });
     }
 
-    // 2. Validate cart belongs to user
     if (cartItem.cart.user.id !== userId) {
       throw new ForbiddenException({
         statusCode: 403,
@@ -221,10 +230,7 @@ export class CartService {
       });
     }
 
-    // 3. Delete cart item
     await this.cartItemRepository.remove(cartItem);
-
-    // 4. Return updated cart
     return this.getCart(userId);
   }
 
@@ -233,7 +239,6 @@ export class CartService {
    * Xóa tất cả sản phẩm trong giỏ hàng
    */
   async clearCart(userId: string): Promise<{ message: string }> {
-    // 1. Find cart with items
     const cart = await this.cartRepository.findOne({
       where: { user: { id: userId } },
       relations: ['items'],
@@ -243,7 +248,6 @@ export class CartService {
       return { message: 'Giỏ hàng trống' };
     }
 
-    // 2. Delete all cart items
     if (cart.items && cart.items.length > 0) {
       await this.cartItemRepository.remove(cart.items);
     }
@@ -252,36 +256,52 @@ export class CartService {
   }
 
   /**
-   * Helper: Format cart response
+   * Helper: Format cart response bao gồm variant info
    */
   private formatCartResponse(cart: Cart): any {
     const items =
       cart.items
         ?.map((item) => {
-          const product = item.product;
-          if (!product) {
-            return null;
-          }
+          const variant = item.variant;
+          if (!variant) return null;
+
+          const product = variant.product;
           const primaryImage =
-            product.images?.find((img) => img.isPrimary)?.imageUrl ||
-            product.images?.[0]?.imageUrl ||
+            product?.images?.find((img) => img.isPrimary)?.imageUrl ||
+            product?.images?.[0]?.imageUrl ||
             null;
-          const subtotal = Number(product.price) * item.quantity;
+
+          const price = Number(variant.price);
+          const subtotal = price * item.quantity;
+
+          // Format option values display (e.g. "Xanh Titan | 256GB")
+          const optionValues = (variant.optionValues ?? [])
+            .sort(
+              (a, b) =>
+                (a.optionValue?.optionType?.displayOrder ?? 0) -
+                (b.optionValue?.optionType?.displayOrder ?? 0),
+            )
+            .map((vov) => ({
+              optionType: vov.optionValue?.optionType?.name ?? '',
+              value: vov.optionValue?.value ?? '',
+            }));
 
           return {
             id: item.id,
             quantity: item.quantity,
-            product: {
-              id: product.id,
-              name: product.name,
-              price: Number(product.price),
-              stock: product.stock,
-              status: product.status,
-              primaryImage,
-              category: product.category
+            variant: {
+              id: variant.id,
+              sku: variant.sku,
+              price,
+              stock: variant.stock,
+              status: variant.status,
+              optionValues,
+              product: product
                 ? {
-                    id: product.category.id,
-                    name: product.category.name,
+                    id: product.id,
+                    name: product.name,
+                    basePrice: Number(product.basePrice),
+                    primaryImage,
                   }
                 : null,
             },
@@ -290,8 +310,14 @@ export class CartService {
         })
         .filter(Boolean) || [];
 
-    const totalItems = items.reduce((sum, item) => sum + (item?.quantity || 0), 0);
-    const totalAmount = items.reduce((sum, item) => sum + (item?.subtotal || 0), 0);
+    const totalItems = items.reduce(
+      (sum, item) => sum + (item?.quantity || 0),
+      0,
+    );
+    const totalAmount = items.reduce(
+      (sum, item) => sum + (item?.subtotal || 0),
+      0,
+    );
 
     return {
       id: cart.id,
@@ -304,12 +330,19 @@ export class CartService {
   }
 
   /**
-   * Helper: Tìm cart theo userId
+   * Helper: Tìm cart theo userId (dùng bởi OrdersService)
    */
   async findCartByUserId(userId: string): Promise<Cart | null> {
     return this.cartRepository.findOne({
       where: { user: { id: userId } },
-      relations: ['items', 'items.product'],
+      relations: [
+        'items',
+        'items.variant',
+        'items.variant.product',
+        'items.variant.optionValues',
+        'items.variant.optionValues.optionValue',
+        'items.variant.optionValues.optionValue.optionType',
+      ],
     });
   }
 

@@ -12,6 +12,7 @@ import { CategoriesModule } from './categories/categories.module';
 import { ProductsModule } from './products/products.module';
 import { CartModule } from './cart/cart.module';
 import { OrdersModule } from './orders/orders.module';
+import { OptionsModule } from './options/options.module';
 import { LoggerModule } from './common/logger';
 import { HttpExceptionFilter } from './common/filters';
 import { LoggingInterceptor } from './common/interceptors';
@@ -52,6 +53,7 @@ import { LoggingInterceptor } from './common/interceptors';
     ProductsModule,
     CartModule,
     OrdersModule,
+    OptionsModule,
   ],
   controllers: [AppController, HealthController],
   providers: [

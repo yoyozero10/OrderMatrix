@@ -67,4 +67,12 @@ export class CreateOrderDto {
   @IsOptional()
   @IsString()
   note?: string;
+
+  @ApiPropertyOptional({
+    example: 'DISCOUNT10',
+    description: 'Mã giảm giá (coupon code)',
+  })
+  @IsOptional()
+  @IsString({ message: 'Mã giảm giá phải là chuỗi ký tự' })
+  couponCode?: string;
 }

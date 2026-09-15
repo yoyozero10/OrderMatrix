@@ -6,6 +6,7 @@ import { CartItem } from '../cart/entities/cart-item.entity';
 import { Product } from '../products/entities/product.entity';
 import { ProductVariant } from '../products/entities/product-variant.entity';
 import { User } from '../users/entities/user.entity';
+import { Coupon, CouponUsage } from '../coupons/entities';
 import { OrdersService } from './orders.service';
 import { OrdersController } from './orders.controller';
 import { AdminOrdersController } from './admin-orders.controller';
@@ -21,6 +22,8 @@ import { AdminOrdersController } from './admin-orders.controller';
       Product,
       ProductVariant,
       User,
+      Coupon,
+      CouponUsage,
     ]),
   ],
   providers: [OrdersService],

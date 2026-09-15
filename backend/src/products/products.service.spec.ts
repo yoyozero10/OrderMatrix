@@ -1,9 +1,14 @@
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 import { ProductsService } from './products.service';
 import { Product } from './entities/product.entity';
 import { ProductImage } from './entities/product-image.entity';
+import { ProductVariant } from './entities/product-variant.entity';
+import { OptionType } from './entities/option-type.entity';
+import { OptionValue } from './entities/option-value.entity';
+import { VariantOptionValue } from './entities/variant-option-value.entity';
 import { Category } from '../categories/entities/category.entity';
 
 describe('ProductsService', () => {
@@ -40,8 +45,34 @@ describe('ProductsService', () => {
     update: jest.fn(),
   };
 
+  const variantRepositoryMock = {
+    find: jest.fn(),
+    findOne: jest.fn(),
+    create: jest.fn(),
+    save: jest.fn(),
+  };
+
+  const optionTypeRepositoryMock = {
+    find: jest.fn(),
+    findOne: jest.fn(),
+  };
+
+  const optionValueRepositoryMock = {
+    find: jest.fn(),
+    findOne: jest.fn(),
+  };
+
+  const variantOptionValueRepositoryMock = {
+    create: jest.fn(),
+    save: jest.fn(),
+  };
+
   const categoryRepositoryMock = {
     findOne: jest.fn(),
+  };
+
+  const dataSourceMock = {
+    transaction: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -50,12 +81,18 @@ describe('ProductsService', () => {
         ProductsService,
         { provide: getRepositoryToken(Product), useValue: productRepositoryMock },
         { provide: getRepositoryToken(ProductImage), useValue: productImageRepositoryMock },
+        { provide: getRepositoryToken(ProductVariant), useValue: variantRepositoryMock },
+        { provide: getRepositoryToken(OptionType), useValue: optionTypeRepositoryMock },
+        { provide: getRepositoryToken(OptionValue), useValue: optionValueRepositoryMock },
+        { provide: getRepositoryToken(VariantOptionValue), useValue: variantOptionValueRepositoryMock },
         { provide: getRepositoryToken(Category), useValue: categoryRepositoryMock },
+        { provide: DataSource, useValue: dataSourceMock },
       ],
     }).compile();
 
     service = module.get<ProductsService>(ProductsService);
     jest.clearAllMocks();
+    variantRepositoryMock.find.mockResolvedValue([]);
   });
 
   // ============================================================

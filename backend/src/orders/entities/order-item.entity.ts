@@ -21,12 +21,12 @@ export class OrderItem extends BaseEntity {
   variantSnapshot: object;
   // e.g. { "Màu sắc": "Xanh Titan", "Dung lượng": "256GB" }
 
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column('decimal', { precision: 14, scale: 2 })
   unitPriceSnapshot: number;
 
   @Column()
   quantity: number;
 
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column('decimal', { precision: 14, scale: 2 })
   subtotal: number;
 }

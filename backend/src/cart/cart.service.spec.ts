@@ -4,7 +4,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { CartService } from './cart.service';
 import { Cart, CartItem } from './entities';
-import { Product } from '../products/entities/product.entity';
+import { ProductVariant } from '../products/entities/product-variant.entity';
 
 describe('CartService', () => {
   let service: CartService;
@@ -20,7 +20,9 @@ describe('CartService', () => {
     remove: jest.fn(),
   };
 
-  const productRepositoryMock = {};
+  const variantRepositoryMock = {
+    findOne: jest.fn(),
+  };
 
   const dataSourceMock = {
     transaction: jest.fn(),
@@ -39,8 +41,8 @@ describe('CartService', () => {
           useValue: cartItemRepositoryMock,
         },
         {
-          provide: getRepositoryToken(Product),
-          useValue: productRepositoryMock,
+          provide: getRepositoryToken(ProductVariant),
+          useValue: variantRepositoryMock,
         },
         {
           provide: DataSource,
@@ -62,14 +64,19 @@ describe('CartService', () => {
         {
           id: 'item-1',
           quantity: 2,
-          product: {
-            id: 'product-1',
-            name: 'Keyboard',
+          variant: {
+            id: 'var-1',
+            sku: 'KB-01',
             price: 150,
             stock: 10,
             status: 'active',
-            images: [{ imageUrl: 'primary.jpg', isPrimary: true }],
-            category: { id: 'cat-1', name: 'Accessories' },
+            product: {
+              id: 'product-1',
+              name: 'Keyboard',
+              images: [{ imageUrl: 'primary.jpg', isPrimary: true }],
+              category: { id: 'cat-1', name: 'Accessories' },
+            },
+            optionValues: [],
           },
         },
       ],
@@ -83,10 +90,13 @@ describe('CartService', () => {
         {
           id: 'item-1',
           subtotal: 300,
-          product: {
-            id: 'product-1',
-            primaryImage: 'primary.jpg',
-            category: { id: 'cat-1', name: 'Accessories' },
+          variant: {
+            id: 'var-1',
+            sku: 'KB-01',
+            product: {
+              name: 'Keyboard',
+              primaryImage: 'primary.jpg',
+            },
           },
         },
       ],
@@ -98,8 +108,10 @@ describe('CartService', () => {
       findOne: jest
         .fn()
         .mockResolvedValueOnce({
-          id: 'product-1',
+          id: 'var-1',
           stock: 5,
+          status: 'active',
+          product: { id: 'product-1', name: 'Keyboard' },
         })
         .mockResolvedValueOnce({
           id: 'cart-1',
@@ -124,7 +136,7 @@ describe('CartService', () => {
     });
 
     await expect(
-      service.addToCart('user-1', { productId: 'product-1', quantity: 2 }),
+      service.addToCart('user-1', { variantId: 'var-1', quantity: 2 }),
     ).resolves.toMatchObject({
       id: 'cart-1',
       totalItems: 3,
@@ -144,9 +156,8 @@ describe('CartService', () => {
         id: 'item-1',
         quantity: 1,
         cart: { user: { id: 'other-user' } },
-        product: { id: 'product-1' },
+        variant: { id: 'var-1', stock: 10, status: 'active' },
       }),
-      save: jest.fn(),
     };
 
     dataSourceMock.transaction.mockImplementation(async (callback) =>
@@ -154,7 +165,7 @@ describe('CartService', () => {
     );
 
     await expect(
-      service.updateCartItem('user-1', 'item-1', { quantity: 2 }),
-    ).rejects.toBeInstanceOf(ForbiddenException);
+      service.updateCartItem('user-1', 'item-1', { quantity: 4 }),
+    ).rejects.toThrow(ForbiddenException);
   });
 });

@@ -12,6 +12,7 @@ import { CartItem } from '../cart/entities/cart-item.entity';
 import { Product } from '../products/entities/product.entity';
 import { ProductVariant } from '../products/entities/product-variant.entity';
 import { User } from '../users/entities/user.entity';
+import { Coupon, CouponUsage } from '../coupons/entities';
 import {
   CreateOrderDto,
   GetOrdersDto,
@@ -198,6 +199,109 @@ export class OrdersService {
           .execute();
       }
 
+      // 2.1 Xử lý coupon nếu có
+      let discountAmount = 0;
+      let appliedCoupon: Coupon | null = null;
+
+      if (dto.couponCode) {
+        const code = dto.couponCode.trim().toUpperCase();
+        appliedCoupon = await manager.findOne(Coupon, {
+          where: { code },
+          lock: { mode: 'pessimistic_write' },
+        });
+
+        if (!appliedCoupon) {
+          throw new NotFoundException({
+            statusCode: 404,
+            errorCode: 'COUPON_NOT_FOUND',
+            message: 'Mã giảm giá không tồn tại',
+          });
+        }
+
+        if (!appliedCoupon.isActive) {
+          throw new BadRequestException({
+            statusCode: 400,
+            errorCode: 'COUPON_INACTIVE',
+            message: 'Mã giảm giá hiện không hoạt động',
+          });
+        }
+
+        const now = new Date();
+        if (now < new Date(appliedCoupon.startDate)) {
+          throw new BadRequestException({
+            statusCode: 400,
+            errorCode: 'COUPON_NOT_STARTED',
+            message: 'Mã giảm giá chưa đến thời gian áp dụng',
+          });
+        }
+
+        if (now > new Date(appliedCoupon.endDate)) {
+          throw new BadRequestException({
+            statusCode: 400,
+            errorCode: 'COUPON_EXPIRED',
+            message: 'Mã giảm giá đã hết hạn',
+          });
+        }
+
+        if (
+          appliedCoupon.usageLimit !== null &&
+          appliedCoupon.usageLimit !== undefined &&
+          appliedCoupon.usedCount >= appliedCoupon.usageLimit
+        ) {
+          throw new BadRequestException({
+            statusCode: 400,
+            errorCode: 'COUPON_USAGE_LIMIT_EXCEEDED',
+            message: 'Mã giảm giá đã hết lượt sử dụng',
+          });
+        }
+
+        const minOrderValue = Number(appliedCoupon.minOrderValue || 0);
+        if (totalAmount < minOrderValue) {
+          throw new BadRequestException({
+            statusCode: 400,
+            errorCode: 'COUPON_MIN_ORDER_VALUE',
+            message: `Đơn hàng tối thiểu phải từ ${minOrderValue.toLocaleString()}đ để áp dụng mã giảm giá`,
+          });
+        }
+
+        const userUsageLimit = appliedCoupon.userUsageLimit ?? 1;
+        const userUsageCount = await manager.count(CouponUsage, {
+          where: {
+            coupon: { id: appliedCoupon.id },
+            user: { id: userId },
+          },
+        });
+
+        if (userUsageCount >= userUsageLimit) {
+          throw new BadRequestException({
+            statusCode: 400,
+            errorCode: 'COUPON_USER_LIMIT_EXCEEDED',
+            message: 'Bạn đã hết lượt sử dụng mã giảm giá này',
+          });
+        }
+
+        if (appliedCoupon.discountType === 'percentage') {
+          discountAmount =
+            (totalAmount * Number(appliedCoupon.discountValue)) / 100;
+          if (
+            appliedCoupon.maxDiscountAmount !== null &&
+            appliedCoupon.maxDiscountAmount !== undefined
+          ) {
+            discountAmount = Math.min(
+              discountAmount,
+              Number(appliedCoupon.maxDiscountAmount),
+            );
+          }
+        } else {
+          discountAmount = Number(appliedCoupon.discountValue);
+        }
+
+        discountAmount = Math.min(discountAmount, totalAmount);
+        discountAmount = Math.max(0, Math.round(discountAmount * 100) / 100);
+      }
+
+      const finalAmount = Math.max(0, totalAmount - discountAmount);
+
       // 3. Generate order code
       const orderCode = await this.generateOrderCode();
 
@@ -205,7 +309,9 @@ export class OrdersService {
       const order = manager.create(Order, {
         orderCode,
         user: { id: userId },
-        totalAmount,
+        totalAmount: finalAmount,
+        discountAmount,
+        couponCodeSnapshot: appliedCoupon ? appliedCoupon.code : null,
         shippingAddress: dto.shippingAddress,
         paymentMethod: dto.paymentMethod || 'COD',
         paymentStatus: 'pending',
@@ -213,6 +319,20 @@ export class OrdersService {
       });
 
       const savedOrder = await manager.save(order);
+
+      // Cập nhật usedCount của coupon và ghi nhận CouponUsage
+      if (appliedCoupon) {
+        appliedCoupon.usedCount += 1;
+        await manager.save(appliedCoupon);
+
+        const couponUsage = manager.create(CouponUsage, {
+          coupon: appliedCoupon,
+          user: { id: userId } as User,
+          order: savedOrder,
+          usedAt: new Date(),
+        });
+        await manager.save(couponUsage);
+      }
 
       // 5. Create order items with snapshots (variant-aware)
       for (const itemData of orderItemsData) {
@@ -291,6 +411,8 @@ export class OrdersService {
         id: order.id,
         orderCode: order.orderCode,
         totalAmount: Number(order.totalAmount),
+        discountAmount: Number(order.discountAmount ?? 0),
+        couponCodeSnapshot: order.couponCodeSnapshot ?? null,
         paymentMethod: order.paymentMethod,
         paymentStatus: order.paymentStatus,
         orderStatus: order.orderStatus,
@@ -414,6 +536,33 @@ export class OrdersService {
         }
       }
 
+      // Hoàn trả lượt dùng coupon (giảm usedCount, xóa CouponUsage)
+      if (order.couponCodeSnapshot) {
+        const couponUsage = await manager.findOne(CouponUsage, {
+          where: { order: { id: orderId } },
+          relations: ['coupon'],
+        });
+
+        if (couponUsage) {
+          const couponToRefund = couponUsage.coupon
+            ? await manager.findOne(Coupon, {
+                where: { id: couponUsage.coupon.id },
+                lock: { mode: 'pessimistic_write' },
+              })
+            : await manager.findOne(Coupon, {
+                where: { code: order.couponCodeSnapshot },
+                lock: { mode: 'pessimistic_write' },
+              });
+
+          if (couponToRefund && couponToRefund.usedCount > 0) {
+            couponToRefund.usedCount -= 1;
+            await manager.save(couponToRefund);
+          }
+
+          await manager.remove(couponUsage);
+        }
+      }
+
       // Create status history
       const statusHistory = manager.create(OrderStatusHistory, {
         order: { id: orderId } as Order,
@@ -431,6 +580,70 @@ export class OrdersService {
       });
 
       return this.formatOrderResponse(updatedOrder!);
+    });
+  }
+
+  /**
+   * API: POST /orders/:id/pay
+   * Mô phỏng thanh toán trực tuyến
+   */
+  async payOrder(userId: string, orderId: string): Promise<any> {
+    return await this.dataSource.transaction(async (manager) => {
+      const order = await manager.findOne(Order, {
+        where: { id: orderId },
+        relations: ['user', 'items', 'items.variant', 'items.variant.product'],
+        lock: { mode: 'pessimistic_write' },
+      });
+
+      if (!order) {
+        throw new NotFoundException({
+          statusCode: 404,
+          errorCode: 'ORDER_NOT_FOUND',
+          message: 'Không tìm thấy đơn hàng',
+        });
+      }
+
+      if (order.user.id !== userId) {
+        throw new ForbiddenException({
+          statusCode: 403,
+          errorCode: 'FORBIDDEN_RESOURCE',
+          message: 'Bạn không có quyền thanh toán đơn hàng này',
+        });
+      }
+
+      if (order.orderStatus === 'cancelled') {
+        throw new BadRequestException({
+          statusCode: 400,
+          errorCode: 'ORDER_ALREADY_CANCELLED',
+          message: 'Đơn hàng đã hủy, không thể thanh toán',
+        });
+      }
+
+      if (order.paymentStatus === 'paid') {
+        throw new BadRequestException({
+          statusCode: 400,
+          errorCode: 'ORDER_ALREADY_PAID',
+          message: 'Đơn hàng đã được thanh toán trước đó',
+        });
+      }
+
+      order.paymentStatus = 'paid';
+      if (order.orderStatus === 'pending') {
+        order.orderStatus = 'processing';
+      }
+
+      await manager.save(order);
+
+      const statusHistory = manager.create(OrderStatusHistory, {
+        order: { id: orderId } as Order,
+        fromStatus: 'pending',
+        toStatus: order.orderStatus,
+        note: 'Thanh toán trực tuyến thành công',
+        changedBy: userId,
+      });
+      await manager.save(statusHistory);
+
+      return this.formatOrderResponse(order);
     });
   }
 
@@ -477,6 +690,8 @@ export class OrdersService {
         id: order.id,
         orderCode: order.orderCode,
         totalAmount: Number(order.totalAmount),
+        discountAmount: Number(order.discountAmount ?? 0),
+        couponCodeSnapshot: order.couponCodeSnapshot ?? null,
         paymentMethod: order.paymentMethod,
         paymentStatus: order.paymentStatus,
         orderStatus: order.orderStatus,
@@ -557,6 +772,8 @@ export class OrdersService {
       id: order.id,
       orderCode: order.orderCode,
       totalAmount: Number(order.totalAmount),
+      discountAmount: Number(order.discountAmount ?? 0),
+      couponCodeSnapshot: order.couponCodeSnapshot ?? null,
       shippingAddress: order.shippingAddress,
       paymentMethod: order.paymentMethod,
       paymentStatus: order.paymentStatus,
@@ -631,7 +848,7 @@ export class OrdersService {
         order.paymentStatus = 'paid';
       }
 
-      // Nếu cancelled → restore stock vào variant
+      // Nếu cancelled → restore stock vào variant và hoàn trả coupon
       if (dto.status === 'cancelled') {
         for (const item of order.items) {
           if (item.variant?.id) {
@@ -641,6 +858,32 @@ export class OrdersService {
               .set({ stock: () => `stock + ${item.quantity}` })
               .where('id = :id', { id: item.variant.id })
               .execute();
+          }
+        }
+
+        if (order.couponCodeSnapshot) {
+          const couponUsage = await manager.findOne(CouponUsage, {
+            where: { order: { id: orderId } },
+            relations: ['coupon'],
+          });
+
+          if (couponUsage) {
+            const couponToRefund = couponUsage.coupon
+              ? await manager.findOne(Coupon, {
+                  where: { id: couponUsage.coupon.id },
+                  lock: { mode: 'pessimistic_write' },
+                })
+              : await manager.findOne(Coupon, {
+                  where: { code: order.couponCodeSnapshot },
+                  lock: { mode: 'pessimistic_write' },
+                });
+
+            if (couponToRefund && couponToRefund.usedCount > 0) {
+              couponToRefund.usedCount -= 1;
+              await manager.save(couponToRefund);
+            }
+
+            await manager.remove(couponUsage);
           }
         }
       }

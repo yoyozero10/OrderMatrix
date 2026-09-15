@@ -16,8 +16,14 @@ export class Order extends BaseEntity {
   @OneToMany(() => OrderItem, (item) => item.order, { cascade: true })
   items: OrderItem[];
 
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column('decimal', { precision: 14, scale: 2 })
   totalAmount: number;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  couponCodeSnapshot?: string | null;
+
+  @Column('decimal', { precision: 14, scale: 2, default: 0 })
+  discountAmount: number;
 
   @Column('json')
   shippingAddress: object;

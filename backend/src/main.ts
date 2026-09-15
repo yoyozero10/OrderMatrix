@@ -37,14 +37,9 @@ async function bootstrap() {
     }),
   );
 
-  // CORS với whitelist
+  // CORS hỗ trợ mọi origin trong môi trường dev
   app.enableCors({
-    origin: [
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'http://localhost:5173',
-      process.env.FRONTEND_URL,
-    ].filter(Boolean) as string[],
+    origin: true,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   });

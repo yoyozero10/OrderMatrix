@@ -72,4 +72,16 @@ export class OrdersController {
   async cancelOrder(@Request() req, @Param('id') orderId: string) {
     return this.ordersService.cancelOrder(req.user.id, orderId);
   }
+
+  @Post(':id/pay')
+  @ApiOperation({
+    summary: 'Mô phỏng thanh toán trực tuyến cho đơn hàng',
+  })
+  @ApiResponse({ status: 200, description: 'Thanh toán thành công' })
+  @ApiResponse({ status: 400, description: 'Đơn hàng không thể thanh toán hoặc đã hủy' })
+  @ApiResponse({ status: 404, description: 'Đơn hàng không tồn tại' })
+  @ApiResponse({ status: 401, description: 'Chưa đăng nhập' })
+  async payOrder(@Request() req, @Param('id') orderId: string) {
+    return this.ordersService.payOrder(req.user.id, orderId);
+  }
 }

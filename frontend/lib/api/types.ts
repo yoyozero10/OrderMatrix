@@ -43,24 +43,52 @@ export interface ProductListItem {
   id: string;
   name: string;
   description: string;
-  price: number;
-  stock: number;
+  price?: number;
+  basePrice?: number;
+  stock?: number;
   status: "active" | "inactive";
   category: {
     id: string;
     name: string;
   } | null;
   primaryImage: string | null;
+  colors?: string[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ProductOptionValue {
+  id: string;
+  value: string;
+  colorCode?: string | null;
+  imageUrl?: string | null;
+  displayOrder?: number;
+}
+
+export interface ProductOption {
+  id: string;
+  name: string;
+  displayOrder?: number;
+  values: ProductOptionValue[];
+}
+
+export interface ProductVariantItem {
+  id: string;
+  sku: string;
+  price: number;
+  stock: number;
+  status: "active" | "inactive";
+  imageUrl?: string | null;
+  optionValues?: { optionType: string; value: string }[];
 }
 
 export interface ProductDetail {
   id: string;
   name: string;
   description: string;
-  price: number;
-  stock: number;
+  price?: number;
+  basePrice?: number;
+  stock?: number;
   status: "active" | "inactive";
   category: {
     id: string;
@@ -68,6 +96,9 @@ export interface ProductDetail {
     description?: string;
   } | null;
   images: ProductImage[];
+  variants?: ProductVariantItem[];
+  options?: ProductOption[];
+  optionTypes?: ProductOption[];
   createdAt: string;
   updatedAt: string;
 }
@@ -76,7 +107,19 @@ export interface CartItem {
   id: string;
   quantity: number;
   subtotal: number;
-  product: {
+  variant?: {
+    id: string;
+    sku: string;
+    price: number;
+    stock: number;
+    status: string;
+    product?: {
+      id: string;
+      name: string;
+      primaryImage?: string | null;
+    };
+  };
+  product?: {
     id: string;
     name: string;
     price: number;
@@ -268,7 +311,8 @@ export interface AddProductImageRequest {
 }
 
 export interface AddToCartRequest {
-  productId: string;
+  variantId?: string;
+  productId?: string;
   quantity: number;
 }
 
@@ -279,4 +323,36 @@ export interface UpdateCartItemRequest {
 export interface CreateOrderRequest {
   shippingAddress: ShippingAddress;
   paymentMethod: PaymentMethod;
+  couponCode?: string;
+}
+
+export type DiscountType = "percentage" | "fixed";
+
+export interface Coupon {
+  id: string;
+  code: string;
+  discountType: DiscountType;
+  discountValue: number;
+  maxDiscountAmount?: number;
+  minOrderValue?: number;
+  usageLimit?: number;
+  usedCount: number;
+  userUsageLimit?: number;
+  startDate?: string;
+  endDate?: string;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ApplyCouponRequest {
+  code: string;
+  orderTotal: number;
+}
+
+export interface ApplyCouponResponse {
+  valid: boolean;
+  coupon: Coupon;
+  discountAmount: number;
+  finalTotal: number;
 }

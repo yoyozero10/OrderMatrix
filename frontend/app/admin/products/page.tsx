@@ -199,8 +199,8 @@ export default function AdminProductsPage() {
       id: product.id,
       name: product.name,
       description: product.description,
-      price: String(product.price),
-      stock: String(product.stock),
+      price: String(product.basePrice ?? product.price ?? 0),
+      stock: String(product.stock ?? 0),
       categoryId: product.category?.id ?? "",
       status: product.status
     });
@@ -480,8 +480,8 @@ export default function AdminProductsPage() {
                   <div>
                     <p className="font-semibold text-ink">{product.name}</p>
                     <p className="text-xs text-slate">
-                      {product.category?.name ?? "Uncategorized"} | Stock {product.stock} |{" "}
-                      {formatCurrency(product.price)}
+                      {product.category?.name ?? "Uncategorized"} | Stock {product.stock ?? 0} |{" "}
+                      {formatCurrency(product.basePrice ?? product.price ?? 0)}
                     </p>
                   </div>
                   <div className="flex gap-2">

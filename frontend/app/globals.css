@@ -2,29 +2,45 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ════════════════════════════════════════════════════════════════
+   Apple Liquid Glass — Design Tokens (apple-design-skill)
+   ════════════════════════════════════════════════════════════════ */
 :root {
-  --color-canvas: 245 242 232;
-  --color-ink: 31 42 55;
-  --color-moss: 31 122 100;
-  --color-ember: 235 91 45;
-  --color-cloud: 255 253 250;
-  --color-slate: 68 87 109;
-  --color-mist: 236 240 243;
-  --page-bg: #f5f2e8;
-  --page-ink: #1f2a37;
-}
+  --bg: #f5f5f7;
+  --surface: #ffffff;
+  --hover: #fbfbfd;
+  --text: #1d1d1f;
+  --text-body: #424245;
+  --text-2: #6e6e73;
+  --text-3: #86868b;
+  --text-4: #aeaeb2;
+  --hairline: rgba(0, 0, 0, 0.08);
 
-html.dark {
-  --color-canvas: 15 20 27;
-  --color-ink: 231 237 245;
-  --color-moss: 63 181 148;
-  --color-ember: 255 135 95;
-  --color-cloud: 21 28 37;
-  --color-slate: 158 176 196;
-  --color-mist: 34 48 65;
-  --page-bg: #0f141b;
-  --page-ink: #e7edf5;
-  color-scheme: dark;
+  --accent: #0071e3;
+  --accent-hover: #0077ed;
+  --live: #30d158;
+  --danger: #ff3b30;
+
+  --r-pill: 999px;
+  --r-card: 18px;
+  --r-panel: 22px;
+  --r-hero: 26px;
+
+  --sh-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.05);
+  --sh-panel: 0 1px 3px rgba(0, 0, 0, 0.05), 0 14px 40px rgba(0, 0, 0, 0.05);
+  --sh-lift: 0 12px 32px rgba(0, 0, 0, 0.08);
+  --sh-cta: 0 20px 54px rgba(0, 113, 227, 0.24);
+
+  /* Legacy Tailwind token mapping */
+  --color-canvas: 245 245 247;
+  --color-ink: 29 29 31;
+  --color-moss: 0 113 227;     /* Apple Blue */
+  --color-ember: 255 107 0;    /* Apple Heat */
+  --color-cloud: 255 255 255;  /* Pure White */
+  --color-slate: 110 110 115;  /* Secondary text */
+  --color-mist: 232 232 237;   /* Track grey */
+  --page-bg: #f5f5f7;
+  --page-ink: #1d1d1f;
 }
 
 * {
@@ -35,37 +51,32 @@ html,
 body {
   margin: 0;
   min-height: 100%;
-  background: var(--page-bg);
-  color: var(--page-ink);
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", "Helvetica Neue", sans-serif;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-body {
-  position: relative;
-  font-family: var(--font-body), sans-serif;
-  line-height: 1.45;
-  transition: background-color 220ms ease, color 220ms ease;
+/* Glass nav utility */
+.glass-nav {
+  background: rgba(245, 245, 247, 0.75);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid var(--hairline);
 }
 
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background-image:
-    radial-gradient(circle at 18% 20%, rgba(31, 122, 100, 0.1), transparent 40%),
-    radial-gradient(circle at 84% 8%, rgba(235, 91, 45, 0.14), transparent 40%),
-    linear-gradient(120deg, #fffdfa, #f5f2e8 55%, #eef5f2);
-}
-
-html.dark body::before {
-  background-image:
-    radial-gradient(circle at 18% 20%, rgba(63, 181, 148, 0.18), transparent 40%),
-    radial-gradient(circle at 84% 8%, rgba(255, 135, 95, 0.14), transparent 40%),
-    linear-gradient(120deg, #151c25, #0f141b 55%, #121a24);
+/* Fluid interaction response */
+button:active,
+a:active {
+  transform: scale(0.98);
+  transition: transform 90ms ease-out;
 }
 
 .font-heading {
-  font-family: var(--font-heading), sans-serif;
+  letter-spacing: -0.025em;
+  font-weight: 700;
 }
 
 .line-clamp-1 {

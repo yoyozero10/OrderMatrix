@@ -5,8 +5,11 @@ import type {
   AdminOrderSummary,
   AdminUserDetail,
   AdminUserSummary,
+  ApplyCouponRequest,
+  ApplyCouponResponse,
   Cart,
   Category,
+  Coupon,
   CreateOrderRequest,
   LoginRequest,
   LoginResponse,
@@ -256,5 +259,47 @@ export const adminApi = {
       token,
       body: { role }
     });
+  }
+};
+
+export const couponApi = {
+  apply(body: ApplyCouponRequest) {
+    return apiRequest<ApplyCouponResponse>("/coupons/apply", {
+      method: "POST",
+      body
+    });
+  },
+  applyCoupon(_token: string | null | undefined, body: ApplyCouponRequest) {
+    return apiRequest<ApplyCouponResponse>("/coupons/apply", {
+      method: "POST",
+      body
+    });
+  }
+};
+
+export const adminCouponApi = {
+  getAll(token: string) {
+    return apiRequest<Coupon[]>("/admin/coupons", { token });
+  },
+  getAllCoupons(token: string) {
+    return apiRequest<Coupon[]>("/admin/coupons", { token });
+  },
+  create(token: string, body: Partial<Coupon>) {
+    return apiRequest<Coupon>("/admin/coupons", { method: "POST", token, body });
+  },
+  createCoupon(token: string, body: Partial<Coupon>) {
+    return apiRequest<Coupon>("/admin/coupons", { method: "POST", token, body });
+  },
+  toggle(token: string, id: string) {
+    return apiRequest<Coupon>(`/admin/coupons/${id}/toggle`, { method: "PATCH", token });
+  },
+  toggleCoupon(token: string, id: string) {
+    return apiRequest<Coupon>(`/admin/coupons/${id}/toggle`, { method: "PATCH", token });
+  },
+  delete(token: string, id: string) {
+    return apiRequest<{ message: string }>(`/admin/coupons/${id}`, { method: "DELETE", token });
+  },
+  deleteCoupon(token: string, id: string) {
+    return apiRequest<{ message: string }>(`/admin/coupons/${id}`, { method: "DELETE", token });
   }
 };

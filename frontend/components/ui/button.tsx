@@ -13,19 +13,19 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClass: Record<Variant, string> = {
   primary:
-    "bg-[#1f2a37] text-white border border-transparent hover:bg-[#101926] active:translate-y-px",
+    "bg-[#0071e3] text-white border border-transparent hover:bg-[#0077ed] active:scale-[0.98]",
   secondary:
-    "bg-moss text-white border border-transparent hover:bg-[#17604f] active:translate-y-px",
+    "bg-white text-[#1d1d1f] border border-black/[0.08] hover:bg-black/[0.03] active:scale-[0.98] shadow-sm",
   ghost:
-    "bg-cloud text-ink border border-slate/30 hover:bg-mist active:translate-y-px",
+    "bg-transparent text-[#1d1d1f] border border-transparent hover:bg-black/[0.04] active:scale-[0.98]",
   danger:
-    "bg-rose-600 text-white border border-transparent hover:bg-rose-700 active:translate-y-px"
+    "bg-[#ff3b30] text-white border border-transparent hover:bg-[#e0342a] active:scale-[0.98]"
 };
 
 const sizeClass: Record<Size, string> = {
-  sm: "h-9 px-3 text-sm",
-  md: "h-11 px-4 text-sm",
-  lg: "h-12 px-5 text-base"
+  sm: "h-8 px-3.5 text-xs rounded-full",
+  md: "h-10 px-4 text-sm rounded-full",
+  lg: "h-11 px-5 text-sm font-medium rounded-full"
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -35,14 +35,14 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={disabled || loading}
         className={cn(
-          "inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition disabled:cursor-not-allowed disabled:opacity-60",
+          "inline-flex items-center justify-center gap-2 font-medium transition duration-150 disabled:cursor-not-allowed disabled:opacity-50",
           variantClass[variant],
           sizeClass[size],
           className
         )}
         {...props}
       >
-        {loading ? "Please wait..." : children}
+        {loading ? "Đang xử lý..." : children}
       </button>
     );
   }

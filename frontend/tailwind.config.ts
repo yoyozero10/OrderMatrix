@@ -17,7 +17,14 @@ const config: Config = {
         ember: "rgb(var(--color-ember) / <alpha-value>)",
         cloud: "rgb(var(--color-cloud) / <alpha-value>)",
         slate: "rgb(var(--color-slate) / <alpha-value>)",
-        mist: "rgb(var(--color-mist) / <alpha-value>)"
+        mist: "rgb(var(--color-mist) / <alpha-value>)",
+        apple: {
+          bg: "#f5f5f7",
+          text: "#1d1d1f",
+          blue: "#0071e3",
+          hairline: "rgba(0, 0, 0, 0.08)",
+          live: "#30d158"
+        }
       },
       boxShadow: {
         card: "0 16px 45px -24px rgba(31, 42, 55, 0.45)",
@@ -25,10 +32,6 @@ const config: Config = {
       },
       borderRadius: {
         xl2: "1.25rem"
-      },
-      backgroundImage: {
-        "hero-wash":
-          "radial-gradient(circle at 10% 10%, rgb(var(--color-moss) / 0.16), transparent 45%), radial-gradient(circle at 90% 8%, rgb(var(--color-ember) / 0.18), transparent 40%), linear-gradient(120deg, rgb(var(--color-cloud) / 1), rgb(var(--color-canvas) / 1) 52%, rgb(var(--color-mist) / 1))"
       },
       keyframes: {
         drift: {

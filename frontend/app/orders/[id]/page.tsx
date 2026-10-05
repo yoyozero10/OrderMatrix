@@ -168,7 +168,7 @@ export default function OrderDetailPage() {
               </div>
               <div className="flex justify-between">
                 <span>Status:</span>
-                <span className={`font-semibold uppercase ${order.paymentStatus === "completed" ? "text-emerald-700" : "text-rose-700"}`}>
+                <span className={`font-semibold uppercase ${order.paymentStatus === "paid" ? "text-emerald-700" : "text-rose-700"}`}>
                   {order.paymentStatus}
                 </span>
               </div>

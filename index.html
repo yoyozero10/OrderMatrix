@@ -1,0 +1,2225 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <title>OrderMatrix — Apple Liquid Glass</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+  <!-- FONTS: Apple System Font Stack with fallback -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ════════════════════════════════════════════════════════════════
+       Apple Liquid Glass — Design Tokens (from apple-design-skill)
+       ════════════════════════════════════════════════════════════════ */
+    :root {
+      /* Neutrals */
+      --bg: #f5f5f7;              /* Cool grey-white ground */
+      --surface: #ffffff;         /* Unified white surface */
+      --hover: #fbfbfd;           /* Row hover tint */
+      --text: #1d1d1f;            /* Primary title/body text */
+      --text-body: #424245;       /* Long-form body */
+      --text-2: #6e6e73;          /* Secondary / supporting */
+      --text-3: #86868b;          /* Tertiary / captions */
+      --text-4: #aeaeb2;          /* Placeholder */
+      --faint: #d2d2d7;           /* Dividers / subtle arrows */
+      --hairline: rgba(0, 0, 0, 0.08); /* Hairline divider */
+
+      /* Accents */
+      --accent: #0071e3;          /* Apple Blue */
+      --accent-hover: #0077ed;
+      --accent-link: #0066cc;
+      --live: #30d158;            /* Apple Green live dot */
+      --danger: #ff3b30;          /* Apple Red */
+      --warning: #ff9500;         /* Apple Orange */
+
+      /* Gradients: None (Clean Solid Apple Aesthetic) */
+
+      /* Typography */
+      --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", "Helvetica Neue", sans-serif;
+      --mono: ui-monospace, "SF Mono", Menlo, monospace;
+
+      /* Radius */
+      --r-pill: 999px;
+      --r-chip: 6px;
+      --r-thumb: 12px;
+      --r-card: 18px;
+      --r-panel: 22px;
+      --r-hero: 26px;
+      --r-sheet: 16px;
+
+      /* Shadows */
+      --sh-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.05);
+      --sh-panel: 0 1px 3px rgba(0, 0, 0, 0.05), 0 14px 40px rgba(0, 0, 0, 0.05);
+      --sh-lift: 0 12px 32px rgba(0, 0, 0, 0.08);
+      --sh-cta: 0 20px 54px rgba(0, 113, 227, 0.24);
+      --sh-overlay: 0 4px 16px rgba(0, 0, 0, 0.08), 0 30px 80px rgba(0, 0, 0, 0.18);
+
+      /* Motion */
+      --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+      --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+
+      /* Layout */
+      --max-grid: 1040px;
+      --max-read: 720px;
+      --pad-x: 20px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14.5px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      scroll-behavior: smooth;
+    }
+
+    a { text-decoration: none; color: inherit; cursor: pointer; }
+    button, input, select { font-family: inherit; font-size: inherit; }
+    button { cursor: pointer; border: 0; background: none; }
+    button:disabled { cursor: not-allowed; opacity: 0.5; }
+
+    /* Fluid response */
+    button:active, .btn:active, .card:active {
+      transform: scale(0.98);
+      transition: transform 90ms ease-out;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: var(--max-grid);
+      margin: 0 auto;
+      padding: 0 var(--pad-x);
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       1. STICKY LIQUID GLASS NAV
+       ════════════════════════════════════════════════════════════════ */
+    .glass-nav {
+      position: sticky;
+      top: 0;
+      z-index: 500;
+      background: rgba(245, 245, 247, 0.75);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 1px solid var(--hairline);
+      transition: background 0.25s ease;
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 52px;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      color: var(--text);
+    }
+    .brand-apple-logo {
+      width: 17px;
+      height: 17px;
+      fill: currentColor;
+    }
+    .brand-name {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.015em;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+    .nav-link {
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text-2);
+      transition: color 0.15s ease;
+    }
+    .nav-link:hover { color: var(--text); }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 12.5px;
+      font-weight: 500;
+      border-radius: var(--r-pill);
+      padding: 6px 14px;
+      transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+      white-space: nowrap;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-secondary {
+      background: rgba(0, 0, 0, 0.05);
+      color: var(--text);
+    }
+    .btn-secondary:hover { background: rgba(0, 0, 0, 0.08); }
+
+    .cart-badge {
+      background: var(--accent);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 600;
+      border-radius: var(--r-pill);
+      padding: 1px 6px;
+      margin-left: 2px;
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       2. STATUS BAR (Wayfinding & Server Health)
+       ════════════════════════════════════════════════════════════════ */
+    .status-bar {
+      border-bottom: 1px solid var(--hairline);
+      background: rgba(255, 255, 255, 0.6);
+      padding: 7px 0;
+      font-size: 11.5px;
+      color: var(--text-3);
+    }
+    .status-bar-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .status-dot-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-weight: 500;
+      color: var(--text-2);
+    }
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--live);
+      animation: pulse-dot 2.2s infinite;
+    }
+    .live-dot.offline {
+      background: var(--warning);
+      animation: none;
+    }
+
+    @keyframes pulse-dot {
+      0%   { box-shadow: 0 0 0 0 rgba(48, 209, 88, 0.5); }
+      70%  { box-shadow: 0 0 0 6px rgba(48, 209, 88, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(48, 209, 88, 0); }
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       3. PAGE HERO (Restrained Apple Editorial)
+       ════════════════════════════════════════════════════════════════ */
+    .hero-section {
+      padding: clamp(40px, 6vw, 68px) 0 clamp(28px, 4vw, 44px);
+      text-align: center;
+    }
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 12px;
+    }
+    .hero-headline {
+      font-size: clamp(34px, 5.5vw, 56px);
+      font-weight: 700;
+      letter-spacing: -0.035em;
+      line-height: 1.05;
+      color: var(--text);
+      max-width: 780px;
+      margin: 0 auto;
+    }
+    .hero-subline {
+      font-size: clamp(15px, 2.2vw, 17.5px);
+      color: var(--text-2);
+      line-height: 1.5;
+      max-width: 580px;
+      margin: 14px auto 26px;
+    }
+    .hero-actions {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       4. FEATURE SHOWCASE PANEL (Solid Apple Surface, No Gradients)
+       ════════════════════════════════════════════════════════════════ */
+    .apple-cta-card {
+      position: relative;
+      border-radius: var(--r-hero);
+      padding: clamp(28px, 4vw, 36px);
+      background: var(--surface);
+      border: 1px solid var(--hairline);
+      box-shadow: var(--sh-panel);
+      color: var(--text);
+      margin: 20px 0 48px;
+      text-align: left;
+    }
+    .cta-content {
+      position: relative;
+      max-width: 680px;
+    }
+    .cta-content h2 {
+      font-size: clamp(20px, 3vw, 24px);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+      color: var(--text);
+    }
+    .cta-content p {
+      margin-top: 8px;
+      font-size: 13.5px;
+      color: var(--text-2);
+      line-height: 1.55;
+    }
+    .feature-action-btn {
+      display: inline-flex;
+      align-items: center;
+      height: 38px;
+      padding: 0 18px;
+      border-radius: var(--r-pill);
+      background: var(--accent);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 500;
+      margin-top: 18px;
+      transition: background 0.15s ease, transform 0.1s ease;
+    }
+    .feature-action-btn:hover { background: var(--accent-hover); }
+
+    /* ════════════════════════════════════════════════════════════════
+       5. STOREFRONT CATALOG & SEGMENTED CONTROLS
+       ════════════════════════════════════════════════════════════════ */
+    .catalog-section {
+      padding-bottom: 80px;
+    }
+    .catalog-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    /* Segmented pill control */
+    .seg {
+      display: inline-flex;
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: var(--r-pill);
+      padding: 3px;
+      gap: 2px;
+    }
+    .seg button {
+      border: none;
+      cursor: pointer;
+      font-size: 12.5px;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: var(--r-pill);
+      background: transparent;
+      color: var(--text-2);
+      transition: all 0.2s var(--ease-out-quart);
+    }
+    .seg button.active {
+      background: var(--surface);
+      color: var(--text);
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Search input */
+    .search-box {
+      position: relative;
+      width: 240px;
+    }
+    .search-box input {
+      width: 100%;
+      height: 36px;
+      padding: 0 12px 0 32px;
+      border-radius: var(--r-pill);
+      background: rgba(0, 0, 0, 0.05);
+      border: 1px solid transparent;
+      color: var(--text);
+      font-size: 12.5px;
+      outline: none;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+    .search-box input:focus {
+      background: #fff;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.12);
+    }
+    .search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-3);
+      pointer-events: none;
+    }
+
+    /* Product Cards Grid */
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+    .card {
+      background: var(--surface);
+      border-radius: var(--r-card);
+      box-shadow: var(--sh-card);
+      padding: 16px;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s var(--ease-out-quart), box-shadow 0.2s var(--ease-out-quart);
+      cursor: pointer;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--sh-lift);
+    }
+    .card-thumb {
+      width: 100%;
+      height: 180px;
+      border-radius: var(--r-thumb);
+      background: #fbfbfd;
+      overflow: hidden;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+    .card:hover .card-thumb img { transform: scale(1.04); }
+
+    .card-category {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 4px;
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.015em;
+      line-height: 1.35;
+      color: var(--text);
+      margin-bottom: 6px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .card-desc {
+      font-size: 12.5px;
+      color: var(--text-2);
+      line-height: 1.45;
+      margin-bottom: 14px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      flex: 1;
+    }
+    .card-footer {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      padding-top: 10px;
+      border-top: 1px solid var(--hairline);
+    }
+    .card-price {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+      color: var(--text);
+    }
+    .card-action {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       6. UNIFIED PANELS (Anti-Fragmentation Pattern ⭐)
+       ════════════════════════════════════════════════════════════════ */
+    .unified-panel {
+      background: var(--surface);
+      border-radius: var(--r-panel);
+      box-shadow: var(--sh-panel);
+      overflow: hidden;
+      margin-top: 24px;
+    }
+    .panel-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px clamp(16px, 3vw, 24px);
+      color: var(--text);
+      transition: background 0.15s ease;
+    }
+    .panel-row + .panel-row {
+      border-top: 1px solid var(--hairline);
+    }
+    .panel-row:hover {
+      background: var(--hover);
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       7. MODALS & SLIDE-OVER SHEETS (Fluid Motion Layer)
+       ════════════════════════════════════════════════════════════════ */
+    .sheet-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(0, 0, 0, 0.32);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: none;
+      place-items: center;
+      padding: 20px;
+      opacity: 0;
+      transition: opacity 0.25s ease-out;
+    }
+    .sheet-overlay.active {
+      display: grid;
+      opacity: 1;
+    }
+
+    .modal-box {
+      background: var(--surface);
+      border-radius: var(--r-panel);
+      box-shadow: var(--sh-overlay);
+      width: 100%;
+      max-width: 680px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 28px;
+      position: relative;
+      transform: scale(0.96) translateY(8px);
+      transition: transform 0.3s var(--ease-spring);
+    }
+    .sheet-overlay.active .modal-box {
+      transform: scale(1) translateY(0);
+    }
+    .modal-close-btn {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.06);
+      color: var(--text-2);
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      transition: background 0.15s;
+    }
+    .modal-close-btn:hover { background: rgba(0, 0, 0, 0.12); color: var(--text); }
+
+    /* Product Variant Selector */
+    .variant-grid {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+    .variant-thumb {
+      width: 100%;
+      height: 280px;
+      border-radius: var(--r-card);
+      background: #fbfbfd;
+      overflow: hidden;
+      border: 1px solid var(--hairline);
+    }
+    .variant-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .opt-group { margin-bottom: 16px; }
+    .opt-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-3);
+      margin-bottom: 6px;
+    }
+    .opt-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .opt-chip {
+      padding: 6px 14px;
+      border-radius: var(--r-pill);
+      background: rgba(0, 0, 0, 0.04);
+      border: 1px solid var(--hairline);
+      font-size: 12.5px;
+      color: var(--text);
+      font-weight: 500;
+      transition: all 0.15s ease;
+    }
+    .opt-chip:hover { background: rgba(0, 0, 0, 0.08); }
+    .opt-chip.selected {
+      background: var(--text);
+      color: #fff;
+      border-color: var(--text);
+      font-weight: 600;
+    }
+
+    /* Edge-Anchored Right Drawer (Cart & Orders) */
+    .edge-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      max-width: 420px;
+      z-index: 1001;
+      background: var(--surface);
+      box-shadow: -10px 0 40px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.32s var(--ease-spring);
+    }
+    .edge-drawer.open { transform: translateX(0); }
+    .drawer-head {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--hairline);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .drawer-title {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.015em;
+    }
+    .drawer-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    .drawer-foot {
+      padding: 18px 20px;
+      border-top: 1px solid var(--hairline);
+      background: #fbfbfd;
+    }
+
+    /* Form Controls */
+    .form-group { margin-bottom: 12px; }
+    .form-label {
+      display: block;
+      font-size: 11.5px;
+      font-weight: 500;
+      color: var(--text-2);
+      margin-bottom: 4px;
+    }
+    .form-input {
+      width: 100%;
+      height: 38px;
+      padding: 0 12px;
+      border-radius: var(--r-sheet);
+      background: rgba(0, 0, 0, 0.04);
+      border: 1px solid var(--hairline);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .form-input:focus {
+      background: #fff;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.12);
+    }
+
+    /* Toast Notice */
+    .toast-pill {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(30px);
+      z-index: 2000;
+      background: rgba(29, 29, 31, 0.9);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      color: #fff;
+      border-radius: var(--r-pill);
+      padding: 9px 20px;
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s var(--ease-spring);
+    }
+    .toast-pill.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Responsive */
+    @media (max-width: 860px) {
+      .product-grid { grid-template-columns: repeat(2, 1fr); }
+      .variant-grid { grid-template-columns: 1fr; }
+      .variant-thumb { height: 220px; }
+    }
+    @media (max-width: 580px) {
+      .nav-links { display: none; }
+      .product-grid { grid-template-columns: 1fr; }
+      .catalog-toolbar { flex-direction: column; align-items: stretch; }
+      .search-box { width: 100%; }
+      .seg { width: 100%; overflow-x: auto; }
+      .status-bar-inner { flex-direction: column; align-items: flex-start; gap: 4px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- 1. STICKY LIQUID GLASS NAV -->
+  <header class="glass-nav">
+    <div class="container nav-inner">
+      <div class="brand" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+        <svg class="brand-apple-logo" viewBox="0 0 170 170" aria-hidden="true">
+          <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.69-3.04-7.67-7.81-11.96-14.34-6.3-9.61-11.1-20.2-14.41-31.78-3.3-11.58-4.96-22.61-4.96-33.1 0-14.62 3.66-26.68 10.98-36.19 7.32-9.5 16.48-14.37 27.48-14.6 5.02 0 10.45 1.25 16.29 3.75 5.84 2.5 9.77 3.86 11.78 4.09 1.78-.34 5.9-1.8 12.35-4.37 6.46-2.58 11.88-3.72 16.27-3.41 12.56.89 22.48 5.76 29.74 14.62-10.94 6.64-16.3 15.65-16.07 27.03.22 8.94 3.69 16.42 10.41 22.44 6.72 6.03 14.75 9.61 24.1 10.74-2.12 6.65-4.63 13.2-7.53 19.64zM119.22 31.84c0-7.36 2.65-14.15 7.96-20.37 5.3-6.22 11.83-10.05 19.57-11.47.67 7.25-1.89 14.18-7.68 20.78-5.79 6.61-12.4 10.3-19.85 11.06z"/>
+        </svg>
+        <span class="brand-name">OrderMatrix</span>
+      </div>
+
+      <nav class="nav-links">
+        <a href="#catalog" class="nav-link" onclick="document.getElementById('catalog').scrollIntoView({behavior:'smooth'});return false;">Sản phẩm</a>
+        <a href="#orders" class="nav-link" onclick="openOrdersDrawer();return false;">Lịch sử đơn</a>
+        <a href="#admin" class="nav-link" onclick="openAdminModal();return false;">Quản trị</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button type="button" class="btn btn-secondary" onclick="openCartDrawer()" aria-label="Giỏ hàng">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          <span>Túi hàng</span>
+          <span class="cart-badge" id="cartBadge">0</span>
+        </button>
+        <button type="button" class="btn btn-primary" id="userAuthBtn" onclick="openAuthModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>
+          <span>Đăng nhập</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 2. STATUS BAR -->
+  <div class="status-bar">
+    <div class="container status-bar-inner">
+      <div class="status-dot-wrap">
+        <span class="live-dot" id="serverDot"></span>
+        <span id="serverStatusText">Đang đồng bộ máy chủ NestJS...</span>
+      </div>
+      <div>Kiến trúc đa biến thể SKU · TypeORM MySQL · REST API 1.0</div>
+    </div>
+  </div>
+
+  <main>
+    <!-- 3. PAGE HERO -->
+    <section class="hero-section">
+      <div class="container">
+        <div class="hero-eyebrow">
+          <span class="live-dot" style="margin-right:2px"></span>
+          ORDERMATRIX · APPLE LIQUID GLASS
+        </div>
+        <h1 class="hero-headline">Hệ thống thương mại điện tử & Quản lý biến thể SKU</h1>
+        <p class="hero-subline">
+          Trải nghiệm mua sắm mượt mà, đồng bộ giỏ hàng theo phiên và kiểm soát hàng tồn kho đa chiều với độ trễ tối thiểu.
+        </p>
+        <div class="hero-actions">
+          <button type="button" class="btn btn-primary" style="height:42px;padding:0 22px;font-size:14px" onclick="document.getElementById('catalog').scrollIntoView({behavior:'smooth'})">
+            Khám phá danh mục ↓
+          </button>
+          <button type="button" class="btn btn-secondary" style="height:42px;padding:0 20px;font-size:14px" onclick="openAdminModal()">
+            Bảng điều khiển quản trị
+          </button>
+        </div>
+
+        <!-- 4. FEATURE SHOWCASE PANEL -->
+        <div class="apple-cta-card">
+          <div class="cta-content">
+            <h2>Kiến trúc ma trận biến thể trực quan</h2>
+            <p>Tự động kết hợp tùy chọn màu sắc, dung lượng và chuẩn thông số thành mã SKU chính xác với transaction locking trên cơ sở dữ liệu MySQL.</p>
+            <button type="button" class="feature-action-btn" onclick="openProductModal('p-iphone15')">
+              Xem thử cấu hình iPhone 15 Pro Max →
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. STOREFRONT CATALOG SECTION -->
+    <section class="catalog-section" id="catalog">
+      <div class="container">
+        <div class="catalog-toolbar">
+          <!-- Segmented Pill Control -->
+          <div class="seg" id="categorySeg">
+            <button type="button" class="active" onclick="filterCategory('all', this)">Tất cả</button>
+            <button type="button" onclick="filterCategory('Điện thoại', this)">Điện thoại</button>
+            <button type="button" onclick="filterCategory('Laptop', this)">Laptop</button>
+            <button type="button" onclick="filterCategory('Máy tính bảng', this)">Máy tính bảng</button>
+            <button type="button" onclick="filterCategory('Phụ kiện', this)">Phụ kiện</button>
+          </div>
+
+          <!-- Search Input -->
+          <div class="search-box">
+            <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" placeholder="Tìm kiếm sản phẩm..." oninput="handleSearch(this.value)">
+          </div>
+        </div>
+
+        <!-- Product Grid -->
+        <div class="product-grid" id="productGrid">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       MODALS & DRAWERS (Semantic & Fluid Motion)
+       ════════════════════════════════════════════════════════════════ -->
+
+  <!-- PRODUCT SKU VARIANT MODAL -->
+  <div class="sheet-overlay" id="productModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-box">
+      <button type="button" class="modal-close-btn" onclick="closeModals()" aria-label="Đóng"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button>
+      <div class="variant-grid">
+        <div class="variant-thumb">
+          <img id="modalImg" src="" alt="Chi tiết sản phẩm">
+        </div>
+        <div>
+          <div class="card-category" id="modalCategory">DANH MỤC</div>
+          <h2 id="modalTitle" style="font-size:20px;font-weight:700;letter-spacing:-0.02em;margin:2px 0 8px">Tên sản phẩm</h2>
+          <p id="modalDesc" style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.5">Mô tả sản phẩm</p>
+
+          <div style="font-size:24px;font-weight:700;letter-spacing:-0.03em;font-variant-numeric:tabular-nums;color:var(--text);margin-bottom:6px" id="modalPrice">0 ₫</div>
+
+          <div style="display:flex;justify-content:space-between;padding:8px 12px;background:rgba(0,0,0,0.03);border-radius:var(--r-sheet);font-size:12px;margin-bottom:16px">
+            <span id="modalSkuCode" style="font-family:var(--mono);color:var(--text-2)">SKU: ---</span>
+            <span id="modalStockStatus" style="font-weight:600;color:var(--live)">Còn hàng</span>
+          </div>
+
+          <!-- Dynamic Options (Color, Storage, etc.) -->
+          <div id="modalOptionGroups"></div>
+
+          <!-- Quantity Stepper -->
+          <div class="opt-group">
+            <div class="opt-title">Số lượng</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <button type="button" class="btn btn-secondary" style="width:34px;height:34px;padding:0" onclick="adjustQty(-1)" aria-label="Giảm"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+              <input type="number" id="modalQty" value="1" min="1" readonly style="width:48px;height:34px;text-align:center;border-radius:var(--r-sheet);background:rgba(0,0,0,0.04);border:1px solid var(--hairline);font-weight:600">
+              <button type="button" class="btn btn-secondary" style="width:34px;height:34px;padding:0" onclick="adjustQty(1)" aria-label="Tăng"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-primary" style="width:100%;height:44px;font-size:14px;margin-top:10px" onclick="submitAddToCart()">
+            Thêm vào túi hàng
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CART DRAWER -->
+  <div class="edge-drawer" id="cartDrawer" role="dialog" aria-modal="true" aria-labelledby="cartDrawerTitle">
+    <div class="drawer-head">
+      <div class="drawer-title" id="cartDrawerTitle">Túi hàng của bạn</div>
+      <button type="button" class="modal-close-btn" style="position:static" onclick="closeDrawers()" aria-label="Đóng"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button>
+    </div>
+    <div class="drawer-body" id="cartList"></div>
+    <div class="drawer-foot">
+      <!-- Voucher / Coupon Box -->
+      <div id="cartVoucherSection" style="margin-bottom:14px;background:#ffffff;border:1px solid var(--hairline);border-radius:var(--r-sheet);padding:10px 12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <span style="font-size:12px;font-weight:600;color:var(--text);display:inline-flex;align-items:center;gap:5px">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+            <span>Mã ưu đãi / Voucher</span>
+          </span>
+          <span id="voucherHintText" style="font-size:11px;color:var(--text-3)">Thử: APPLE10, GIAM500K</span>
+        </div>
+        <div id="voucherInputGroup" style="display:flex;gap:6px;align-items:center">
+          <input type="text" id="voucherCodeInput" class="form-input" placeholder="Nhập mã giảm giá..." style="flex:1;height:34px;padding:0 12px;font-size:12px;font-family:var(--mono);text-transform:uppercase;border-radius:var(--r-pill)" autocomplete="off">
+          <button type="button" class="btn btn-secondary" id="btnApplyVoucher" onclick="applyCoupon()" style="height:34px;padding:0 14px;font-size:12px;font-weight:600;border-radius:var(--r-pill);background:rgba(0,0,0,0.05);white-space:nowrap">
+            Áp dụng
+          </button>
+        </div>
+        <div id="voucherAppliedBadge" style="display:none;align-items:center;justify-content:space-between;background:rgba(48,209,88,0.08);border:1px solid rgba(48,209,88,0.22);border-radius:var(--r-pill);padding:6px 12px">
+          <div style="display:flex;align-items:center;gap:6px">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--live)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+            <span id="voucherAppliedCode" style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text)">APPLE10</span>
+            <span id="voucherAppliedDesc" style="font-size:11.5px;color:var(--live);font-weight:600">-10%</span>
+          </div>
+          <button type="button" onclick="removeCoupon()" title="Gỡ mã giảm giá" aria-label="Gỡ mã giảm giá" style="display:flex;align-items:center;justify-content:center;color:var(--text-3);padding:2px;cursor:pointer">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Price Breakdown -->
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px;color:var(--text-2)">
+        <span>Tạm tính:</span>
+        <span id="cartSubtotalSum" style="font-variant-numeric:tabular-nums">0 ₫</span>
+      </div>
+      <div id="cartDiscountRow" style="display:none;justify-content:space-between;margin-bottom:6px;font-size:13px;color:var(--live);font-weight:600">
+        <span style="display:inline-flex;align-items:center;gap:4px">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/></svg>
+          <span>Giảm giá:</span>
+        </span>
+        <span id="cartDiscountSum" style="font-variant-numeric:tabular-nums">-0 ₫</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:14px;font-size:15px;font-weight:600;padding-top:6px;border-top:1px dashed var(--hairline)">
+        <span>Tổng thanh toán:</span>
+        <span id="cartTotalSum" style="font-weight:700;font-variant-numeric:tabular-nums">0 ₫</span>
+      </div>
+      <button type="button" class="btn btn-primary" style="width:100%;height:44px;font-size:14px" onclick="toggleCheckout()">
+        Tiến hành đặt hàng
+      </button>
+
+      <!-- Checkout Form -->
+      <form id="checkoutForm" style="display:none;margin-top:16px" onsubmit="submitOrder(event)">
+        <div class="form-group">
+          <label class="form-label">Họ tên người nhận</label>
+          <input type="text" id="chkFullName" class="form-input" required placeholder="Nguyễn Văn A">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Số điện thoại</label>
+          <input type="text" id="chkPhone" class="form-input" required placeholder="0901234567">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Địa chỉ giao hàng</label>
+          <input type="text" id="chkAddress" class="form-input" required placeholder="Số 123 Đường Nguyễn Huệ">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tỉnh / Thành phố</label>
+          <input type="text" id="chkCity" class="form-input" required placeholder="Hồ Chí Minh">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phương thức thanh toán</label>
+          <select id="chkPaymentMethod" class="form-input">
+            <option value="COD">Thanh toán khi nhận hàng (COD)</option>
+            <option value="MOCK">Thanh toán trực tuyến giả lập (MOCK)</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;height:42px;background:var(--live);color:#fff">
+          Xác nhận đặt hàng ngay
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ORDERS DRAWER -->
+  <div class="edge-drawer" id="ordersDrawer" role="dialog" aria-modal="true" aria-labelledby="ordersDrawerTitle">
+    <div class="drawer-head">
+      <div class="drawer-title" id="ordersDrawerTitle">Lịch sử đơn hàng</div>
+      <button type="button" class="modal-close-btn" style="position:static" onclick="closeDrawers()" aria-label="Đóng"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button>
+    </div>
+    <div class="drawer-body" id="ordersList"></div>
+  </div>
+
+  <!-- AUTH MODAL -->
+  <div class="sheet-overlay" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <div class="modal-box" style="max-width:420px">
+      <button type="button" class="modal-close-btn" onclick="closeModals()" aria-label="Đóng"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button>
+
+      <div id="authUnauthenticated">
+        <h2 id="authTitle" style="font-size:18px;font-weight:700;letter-spacing:-0.02em;margin-bottom:12px">Đăng nhập tài khoản</h2>
+        <div style="background:rgba(0,0,0,0.03);padding:10px 14px;border-radius:var(--r-sheet);margin-bottom:16px">
+          <div style="font-size:11.5px;color:var(--text-3);margin-bottom:6px">Tài khoản demo sẵn:</div>
+          <div style="display:flex;gap:8px">
+            <button type="button" class="btn btn-secondary" style="font-size:11.5px" onclick="fillTestAccount('admin@example.com','Password123')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span>Quản trị viên</span>
+            </button>
+            <button type="button" class="btn btn-secondary" style="font-size:11.5px" onclick="fillTestAccount('user@example.com','Password123')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>
+              <span>Khách hàng</span>
+            </button>
+          </div>
+        </div>
+
+        <form id="authLoginForm" onsubmit="handleAuthLogin(event)">
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" id="authEmail" class="form-input" required placeholder="admin@example.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mật khẩu</label>
+            <input type="password" id="authPassword" class="form-input" required placeholder="••••••••">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;height:42px;margin-top:10px">Đăng nhập</button>
+        </form>
+      </div>
+
+      <div id="authAuthenticated" style="display:none">
+        <h2 style="font-size:18px;font-weight:700;letter-spacing:-0.02em;margin-bottom:12px">Thông tin người dùng</h2>
+        <div style="background:rgba(0,0,0,0.03);border-radius:var(--r-sheet);padding:14px;margin-bottom:16px">
+          <div style="font-weight:600;font-size:15px" id="profFullName">Tên người dùng</div>
+          <div style="font-size:12.5px;color:var(--text-2)" id="profUserEmail">email@example.com</div>
+          <div style="margin-top:8px">
+            <span class="btn btn-secondary" style="font-size:11px;padding:2px 8px;cursor:default" id="profUserRole">ROLE</span>
+          </div>
+        </div>
+        <button type="button" class="btn btn-secondary" style="width:100%;margin-bottom:8px;justify-content:flex-start" onclick="closeModals();openOrdersDrawer()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+          <span style="flex:1;text-align:left;margin-left:6px">Lịch sử đơn hàng của tôi</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 6l6 6-6 6"/></svg>
+        </button>
+        <button type="button" class="btn btn-secondary" id="profAdminShortcut" style="width:100%;margin-bottom:8px;display:none;justify-content:flex-start" onclick="closeModals();openAdminModal()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span style="flex:1;text-align:left;margin-left:6px">Bảng điều khiển quản trị</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 6l6 6-6 6"/></svg>
+        </button>
+        <button type="button" class="btn btn-secondary" style="width:100%;color:var(--danger);justify-content:flex-start" onclick="handleAuthLogout()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span style="margin-left:6px">Đăng xuất</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN MANAGEMENT MODAL -->
+  <div class="sheet-overlay" id="adminModal" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
+    <div class="modal-box" style="max-width:740px">
+      <button type="button" class="modal-close-btn" onclick="closeModals()">✕</button>
+      <h2 id="adminTitle" style="font-size:18px;font-weight:700;letter-spacing:-0.02em;margin-bottom:16px">Bảng điều khiển quản trị OrderMatrix</h2>
+
+      <div class="seg" style="margin-bottom:20px">
+        <button type="button" class="active" id="tabAdminStats" onclick="switchAdminSection('stats')">Thống kê</button>
+        <button type="button" id="tabAdminProducts" onclick="switchAdminSection('products')">Sản phẩm & SKU</button>
+        <button type="button" id="tabAdminOrders" onclick="switchAdminSection('orders')">Quản lý đơn hàng</button>
+        <button type="button" id="tabAdminCoupons" onclick="switchAdminSection('coupons')">Mã giảm giá</button>
+      </div>
+
+      <!-- Section: Stats -->
+      <div id="admSectionStats">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px">
+          <div style="background:rgba(0,0,0,0.03);padding:14px;border-radius:var(--r-sheet)">
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--text-3)">DOANH THU</div>
+            <div style="font-size:20px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;margin-top:2px" id="admRevenue">145.980.000 ₫</div>
+          </div>
+          <div style="background:rgba(0,0,0,0.03);padding:14px;border-radius:var(--r-sheet)">
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--text-3)">HOÀN TẤT</div>
+            <div style="font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px" id="admCompletedOrders">15</div>
+          </div>
+          <div style="background:rgba(0,0,0,0.03);padding:14px;border-radius:var(--r-sheet)">
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--text-3)">CHỜ XỬ LÝ</div>
+            <div style="font-size:20px;font-weight:700;color:var(--warning);font-variant-numeric:tabular-nums;margin-top:2px" id="admPendingOrders">3</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Products -->
+      <div id="admSectionProducts" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div style="font-weight:600;font-size:13px">Danh sách sản phẩm hệ thống</div>
+          <button type="button" class="btn btn-primary" style="font-size:12px;padding:4px 12px" onclick="toggleAddProductForm()">+ Thêm sản phẩm</button>
+        </div>
+
+        <form id="adminAddProductForm" style="display:none;background:rgba(0,0,0,0.03);padding:14px;border-radius:var(--r-sheet);margin-bottom:16px" onsubmit="submitAdminCreateProduct(event)">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="form-group">
+              <label class="form-label">Tên sản phẩm</label>
+              <input type="text" id="newPName" class="form-input" required placeholder="iPhone 16 Pro Max">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Giá cơ sở (₫)</label>
+              <input type="number" id="newPPrice" class="form-input" required placeholder="34990000">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mô tả sản phẩm</label>
+            <input type="text" id="newPDesc" class="form-input" required placeholder="Mô tả tóm tắt tính năng">
+          </div>
+          <button type="submit" class="btn btn-primary">Lưu sản phẩm mới</button>
+        </form>
+
+        <div id="adminProductTable" style="max-height:300px;overflow-y:auto"></div>
+      </div>
+
+      <!-- Section: Orders -->
+      <div id="admSectionOrders" style="display:none">
+        <div id="adminOrdersTable" style="max-height:360px;overflow-y:auto"></div>
+      </div>
+
+      <!-- Section: Coupons -->
+      <div id="admSectionCoupons" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div>
+            <div style="font-weight:600;font-size:13.5px">Danh sách mã giảm giá</div>
+            <div style="font-size:11.5px;color:var(--text-3)">Thiết lập và quản lý khuyến mãi voucher</div>
+          </div>
+          <button type="button" class="btn btn-primary" style="font-size:12px;padding:4px 12px;border-radius:var(--r-pill);display:inline-flex;align-items:center;gap:4px" onclick="toggleAddCouponForm()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>Tạo mã mới</span>
+          </button>
+        </div>
+
+        <form id="adminAddCouponForm" style="display:none;background:rgba(0,0,0,0.02);border:1px solid var(--hairline);padding:14px;border-radius:var(--r-sheet);margin-bottom:16px" onsubmit="submitAdminCreateCoupon(event)">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="form-group">
+              <label class="form-label">Mã voucher (Code)</label>
+              <input type="text" id="newCpnCode" class="form-input" required placeholder="VD: TET2026" style="font-family:var(--mono);text-transform:uppercase">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Loại giảm giá</label>
+              <select id="newCpnType" class="form-input" onchange="updateCouponValueLabel()">
+                <option value="percentage">Phần trăm (%)</option>
+                <option value="fixed">Số tiền cố định (₫)</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+            <div class="form-group">
+              <label class="form-label" id="lblCpnValue">Giá trị giảm (%)</label>
+              <input type="number" id="newCpnValue" class="form-input" required placeholder="10" min="1">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Đơn tối thiểu (₫)</label>
+              <input type="number" id="newCpnMinOrder" class="form-input" placeholder="0" min="0" value="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Lượt dùng tối đa</label>
+              <input type="number" id="newCpnUsageLimit" class="form-input" placeholder="100" min="1" value="100">
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:4px">
+            <button type="submit" class="btn btn-primary" style="font-size:12px;padding:5px 14px">Lưu mã giảm giá</button>
+            <button type="button" class="btn btn-secondary" style="font-size:12px;padding:5px 14px" onclick="toggleAddCouponForm()">Hủy</button>
+          </div>
+        </form>
+
+        <div id="adminCouponsTable" style="max-height:360px;overflow-y:auto"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div class="toast-pill" id="toastNotice" role="status" aria-live="polite"></div>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       CLIENT SCRIPT & STOREFRONT ORCHESTRATION
+       ════════════════════════════════════════════════════════════════ -->
+  <script>
+    (function() {
+      var API_BASE = 'http://localhost:3001/api';
+      var authToken = localStorage.getItem('om_token') || '';
+      var authUser = JSON.parse(localStorage.getItem('om_user') || 'null');
+      var isBackendOnline = false;
+
+      var allProducts = [];
+      var activeCart = { items: [] };
+      var currentCategory = 'all';
+      var searchQuery = '';
+
+      var activeProduct = null;
+      var activeVariant = null;
+      var selectedOptions = {};
+
+      var appliedCoupon = null;
+      var mockCoupons = [
+        {
+          id: 'cpn-apple10',
+          code: 'APPLE10',
+          discountType: 'percentage',
+          discountValue: 10,
+          minOrderValue: 0,
+          usageLimit: 100,
+          usedCount: 14,
+          isActive: true
+        },
+        {
+          id: 'cpn-giam500k',
+          code: 'GIAM500K',
+          discountType: 'fixed',
+          discountValue: 500000,
+          minOrderValue: 10000000,
+          usageLimit: 50,
+          usedCount: 8,
+          isActive: true
+        },
+        {
+          id: 'cpn-vip1tr',
+          code: 'VIP1TR',
+          discountType: 'fixed',
+          discountValue: 1000000,
+          minOrderValue: 20000000,
+          usageLimit: 20,
+          usedCount: 20,
+          isActive: false
+        }
+      ];
+
+      window.notify = function(msg) {
+        var el = document.getElementById('toastNotice');
+        el.innerText = msg;
+        el.classList.add('show');
+        setTimeout(function() { el.classList.remove('show'); }, 3000);
+      };
+
+      function formatCurrency(n) {
+        return (Number(n) || 0).toLocaleString('vi-VN') + ' ₫';
+      }
+
+      async function apiRequest(endpoint, options) {
+        options = options || {};
+        var headers = options.headers || {};
+        headers['Content-Type'] = 'application/json';
+        if (authToken) headers['Authorization'] = 'Bearer ' + authToken;
+        options.headers = headers;
+
+        var res = await fetch(API_BASE + endpoint, options);
+        if (res.status === 401) {
+          handleAuthLogout();
+          throw new Error('Phiên đăng nhập đã hết hạn');
+        }
+        var data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Lỗi khi gửi yêu cầu');
+        return data;
+      }
+
+      var fallbackData = [
+        {
+          id: 'p-iphone15',
+          name: 'iPhone 15 Pro Max',
+          description: 'Khung viền Titanium nguyên khối siêu nhẹ, chip Apple A17 Pro mạnh mẽ, camera zoom quang học 5x.',
+          basePrice: 34990000,
+          category: { name: 'Điện thoại' },
+          primaryImage: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=600',
+          options: [
+            { id: 'opt-color', name: 'Màu sắc', values: [{ id: 'c1', value: 'Titan Tự Nhiên' }, { id: 'c2', value: 'Titan Xanh' }] },
+            { id: 'opt-storage', name: 'Dung lượng', values: [{ id: 's1', value: '256GB' }, { id: 's2', value: '512GB' }] }
+          ],
+          variants: [
+            { id: 'v-ip-1', sku: 'IP15PM-NAT-256', price: 34990000, stock: 15, options: { 'opt-color': 'c1', 'opt-storage': 's1' } },
+            { id: 'v-ip-2', sku: 'IP15PM-NAT-512', price: 39990000, stock: 8, options: { 'opt-color': 'c1', 'opt-storage': 's2' } },
+            { id: 'v-ip-3', sku: 'IP15PM-BLU-256', price: 34990000, stock: 12, options: { 'opt-color': 'c2', 'opt-storage': 's1' } },
+            { id: 'v-ip-4', sku: 'IP15PM-BLU-512', price: 39990000, stock: 5, options: { 'opt-color': 'c2', 'opt-storage': 's2' } }
+          ]
+        },
+        {
+          id: 'p-macbook',
+          name: 'MacBook Pro 14 M3 Pro',
+          description: 'Màn hình Liquid Retina XDR độ sáng 1000 nits, RAM 18GB, SSD 512GB, thời lượng pin 18 giờ liên tục.',
+          basePrice: 49990000,
+          category: { name: 'Laptop' },
+          primaryImage: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600',
+          options: [
+            { id: 'opt-color', name: 'Màu sắc', values: [{ id: 'c1', value: 'Space Black' }, { id: 'c2', value: 'Silver' }] }
+          ],
+          variants: [
+            { id: 'v-mb-1', sku: 'MBP14-BLK-512', price: 49990000, stock: 10, options: { 'opt-color': 'c1' } },
+            { id: 'v-mb-2', sku: 'MBP14-SLV-512', price: 49990000, stock: 14, options: { 'opt-color': 'c2' } }
+          ]
+        },
+        {
+          id: 'p-ipad',
+          name: 'iPad Pro M4 11 inch',
+          description: 'Màn hình Ultra Retina XDR công nghệ OLED 2 lớp tân tiến, thiết kế mỏng nhất từ trước đến nay.',
+          basePrice: 28990000,
+          category: { name: 'Máy tính bảng' },
+          primaryImage: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=600',
+          options: [
+            { id: 'opt-color', name: 'Màu sắc', values: [{ id: 'c1', value: 'Space Black' }, { id: 'c2', value: 'Silver' }] },
+            { id: 'opt-storage', name: 'Dung lượng', values: [{ id: 's1', value: '256GB' }, { id: 's2', value: '512GB' }] }
+          ],
+          variants: [
+            { id: 'v-pad-1', sku: 'IPAD-BLK-256', price: 28990000, stock: 12, options: { 'opt-color': 'c1', 'opt-storage': 's1' } },
+            { id: 'v-pad-2', sku: 'IPAD-SLV-512', price: 33990000, stock: 6, options: { 'opt-color': 'c2', 'opt-storage': 's2' } }
+          ]
+        },
+        {
+          id: 'p-watch',
+          name: 'Apple Watch Ultra 2',
+          description: 'Khung vỏ Titanium 49mm chống va đập, GPS kép siêu chính xác, khả năng lặn sâu 40m.',
+          basePrice: 21990000,
+          category: { name: 'Phụ kiện' },
+          primaryImage: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600',
+          options: [
+            { id: 'opt-strap', name: 'Dây đeo', values: [{ id: 'st1', value: 'Dây Alpine' }, { id: 'st2', value: 'Dây Trail Loop' }] }
+          ],
+          variants: [
+            { id: 'v-watch-1', sku: 'AWU2-ALP', price: 21990000, stock: 20, options: { 'opt-strap': 'st1' } },
+            { id: 'v-watch-2', sku: 'AWU2-TRL', price: 21990000, stock: 15, options: { 'opt-strap': 'st2' } }
+          ]
+        }
+      ];
+
+      async function initializeStore() {
+        var statusDot = document.getElementById('serverDot');
+        var statusText = document.getElementById('serverStatusText');
+
+        try {
+          var healthCheck = await fetch(API_BASE + '/health');
+          if (healthCheck.ok) {
+            isBackendOnline = true;
+            statusDot.className = 'live-dot';
+            statusText.innerText = 'Máy chủ Backend đang kết nối trực tiếp (:3001)';
+          } else {
+            throw new Error('Offline');
+          }
+        } catch(e) {
+          isBackendOnline = false;
+          statusDot.className = 'live-dot offline';
+          statusText.innerText = 'Chế độ Demo ngoại tuyến (Dữ liệu cục bộ)';
+        }
+
+        if (isBackendOnline) {
+          try {
+            var res = await apiRequest('/products?limit=20');
+            allProducts = res.data || [];
+          } catch(err) {
+            allProducts = fallbackData;
+          }
+        } else {
+          allProducts = fallbackData;
+        }
+
+        renderCatalog();
+        syncAuthUI();
+        if (authToken) fetchCartData();
+      }
+
+      function renderCatalog() {
+        var grid = document.getElementById('productGrid');
+        grid.innerHTML = '';
+
+        var filtered = allProducts.filter(function(p) {
+          var matchCat = currentCategory === 'all' || (p.category && p.category.name === currentCategory);
+          var matchSearch = !searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase());
+          return matchCat && matchSearch;
+        });
+
+        if (filtered.length === 0) {
+          grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px 0;color:var(--text-3)">Không tìm thấy sản phẩm phù hợp</div>';
+          return;
+        }
+
+        filtered.forEach(function(product) {
+          var card = document.createElement('div');
+          card.className = 'card';
+          var img = product.primaryImage || 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600';
+          var categoryName = product.category ? product.category.name : 'Thiết bị';
+
+          card.innerHTML =
+            '<div class="card-thumb">' +
+              '<img src="' + img + '" alt="' + product.name + '" loading="lazy">' +
+            '</div>' +
+            '<div class="card-category">' + categoryName + '</div>' +
+            '<h3 class="card-title">' + product.name + '</h3>' +
+            '<p class="card-desc">' + (product.description || '') + '</p>' +
+            '<div class="card-footer">' +
+              '<span class="card-price">' + formatCurrency(product.basePrice || product.price || 0) + '</span>' +
+              '<span class="card-action">Chọn mua →</span>' +
+            '</div>';
+
+          card.onclick = function() { openProductModal(product.id); };
+          grid.appendChild(card);
+        });
+      }
+
+      window.filterCategory = function(cat, btn) {
+        currentCategory = cat;
+        var segButtons = document.querySelectorAll('#categorySeg button');
+        segButtons.forEach(function(b) { b.classList.remove('active'); });
+        if (btn) btn.classList.add('active');
+        renderCatalog();
+      };
+
+      window.handleSearch = function(val) {
+        searchQuery = val.trim();
+        renderCatalog();
+      };
+
+      window.openProductModal = async function(productId) {
+        activeProduct = null;
+        activeVariant = null;
+        selectedOptions = {};
+
+        if (isBackendOnline) {
+          try {
+            activeProduct = await apiRequest('/products/' + productId);
+          } catch(e) {
+            activeProduct = allProducts.find(function(p){ return p.id === productId; });
+          }
+        } else {
+          activeProduct = allProducts.find(function(p){ return p.id === productId; }) || fallbackData[0];
+        }
+
+        if (!activeProduct) return;
+
+        document.getElementById('modalTitle').innerText = activeProduct.name;
+        document.getElementById('modalDesc').innerText = activeProduct.description || '';
+        document.getElementById('modalCategory').innerText = (activeProduct.category && activeProduct.category.name) || 'SẢN PHẨM';
+        document.getElementById('modalImg').src = activeProduct.primaryImage || 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600';
+        document.getElementById('modalQty').value = 1;
+
+        var optionsContainer = document.getElementById('modalOptionGroups');
+        optionsContainer.innerHTML = '';
+
+        if (activeProduct.options && activeProduct.options.length > 0) {
+          activeProduct.options.forEach(function(opt) {
+            var group = document.createElement('div');
+            group.className = 'opt-group';
+            group.innerHTML = '<div class="opt-title">' + opt.name + '</div><div class="opt-chips"></div>';
+            optionsContainer.appendChild(group);
+
+            var chipsBox = group.querySelector('.opt-chips');
+            opt.values.forEach(function(val, vi) {
+              var btn = document.createElement('button');
+              btn.type = 'button';
+              btn.className = 'opt-chip' + (vi === 0 ? ' selected' : '');
+              btn.innerText = val.value;
+              btn.onclick = function() {
+                chipsBox.querySelectorAll('.opt-chip').forEach(function(b){ b.classList.remove('selected'); });
+                btn.classList.add('selected');
+                selectedOptions[opt.id] = val.id;
+                matchVariant();
+              };
+              chipsBox.appendChild(btn);
+              if (vi === 0) selectedOptions[opt.id] = val.id;
+            });
+          });
+        }
+
+        matchVariant();
+        document.getElementById('productModal').classList.add('active');
+      };
+
+      function matchVariant() {
+        if (!activeProduct) return;
+        var variants = activeProduct.variants || [];
+        var priceEl = document.getElementById('modalPrice');
+        var skuEl = document.getElementById('modalSkuCode');
+        var stockEl = document.getElementById('modalStockStatus');
+
+        if (variants.length === 0) {
+          priceEl.innerText = formatCurrency(activeProduct.basePrice || 0);
+          skuEl.innerText = 'SKU: DEFAULT';
+          stockEl.innerText = 'Còn hàng';
+          activeVariant = null;
+          return;
+        }
+
+        var matched = variants[0];
+        if (variants.length > 1) {
+          var found = variants.find(function(v) {
+            if (v.options) {
+              return Object.keys(selectedOptions).every(function(k) { return v.options[k] === selectedOptions[k]; });
+            }
+            if (v.optionValues) {
+              return v.optionValues.some(function(ov) { return Object.values(selectedOptions).includes(ov.optionValueId); });
+            }
+            return false;
+          });
+          if (found) matched = found;
+        }
+
+        activeVariant = matched;
+        priceEl.innerText = formatCurrency(matched.price || activeProduct.basePrice || 0);
+        skuEl.innerText = 'SKU: ' + (matched.sku || 'N/A');
+        stockEl.innerText = 'Còn ' + (matched.stock !== undefined ? matched.stock : 20) + ' sản phẩm trong kho';
+      }
+
+      window.adjustQty = function(d) {
+        var inp = document.getElementById('modalQty');
+        var val = parseInt(inp.value, 10) || 1;
+        val += d;
+        if (val < 1) val = 1;
+        inp.value = val;
+      };
+
+      window.submitAddToCart = async function() {
+        var qty = parseInt(document.getElementById('modalQty').value, 10) || 1;
+        if (!authToken) {
+          notify('Vui lòng đăng nhập để lưu sản phẩm vào túi hàng');
+          closeModals();
+          openAuthModal();
+          return;
+        }
+
+        var variantId = activeVariant ? activeVariant.id : activeProduct.id;
+        if (isBackendOnline) {
+          try {
+            await apiRequest('/cart/items', {
+              method: 'POST',
+              body: JSON.stringify({ variantId: variantId, quantity: qty })
+            });
+            notify('Đã thêm sản phẩm vào túi hàng thành công');
+            fetchCartData();
+            closeModals();
+          } catch(err) {
+            notify(err.message || 'Lỗi thêm túi hàng');
+          }
+        } else {
+          activeCart.items.push({
+            id: 'item-' + Date.now(),
+            quantity: qty,
+            variant: activeVariant || { sku: 'SKU-DEMO', price: activeProduct.basePrice, product: activeProduct }
+          });
+          updateCartBadge();
+          notify('Đã thêm sản phẩm vào túi hàng (Demo)');
+          closeModals();
+        }
+      };
+
+      async function fetchCartData() {
+        if (!authToken || !isBackendOnline) return;
+        try {
+          activeCart = await apiRequest('/cart');
+          updateCartBadge();
+        } catch(e) {}
+      }
+
+      function updateCartBadge() {
+        var count = 0;
+        if (activeCart && activeCart.items) {
+          count = activeCart.items.reduce(function(s, i) { return s + (i.quantity || 1); }, 0);
+        }
+        document.getElementById('cartBadge').innerText = count;
+      }
+
+      function calculateCartSubtotal() {
+        var items = (activeCart && activeCart.items) || [];
+        return items.reduce(function(acc, item) {
+          var price = item.variant ? Number(item.variant.price) : 0;
+          return acc + price * (item.quantity || 1);
+        }, 0);
+      }
+
+      function updateCartTotals() {
+        var subtotal = calculateCartSubtotal();
+        var subtotalEl = document.getElementById('cartSubtotalSum');
+        var totalEl = document.getElementById('cartTotalSum');
+        var discountRow = document.getElementById('cartDiscountRow');
+        var discountEl = document.getElementById('cartDiscountSum');
+        var inputGroup = document.getElementById('voucherInputGroup');
+        var badge = document.getElementById('voucherAppliedBadge');
+        var badgeCode = document.getElementById('voucherAppliedCode');
+        var badgeDesc = document.getElementById('voucherAppliedDesc');
+
+        if (subtotalEl) subtotalEl.innerText = formatCurrency(subtotal);
+
+        if (subtotal <= 0) {
+          appliedCoupon = null;
+          if (totalEl) totalEl.innerText = '0 ₫';
+          if (discountRow) discountRow.style.display = 'none';
+          if (inputGroup) inputGroup.style.display = 'flex';
+          if (badge) badge.style.display = 'none';
+          return;
+        }
+
+        if (appliedCoupon) {
+          // Revalidate minOrderValue
+          if (appliedCoupon.coupon && appliedCoupon.coupon.minOrderValue && subtotal < appliedCoupon.coupon.minOrderValue) {
+            notify('Đơn hàng không còn đủ ' + formatCurrency(appliedCoupon.coupon.minOrderValue) + ', đã gỡ mã ' + appliedCoupon.code);
+            appliedCoupon = null;
+            return updateCartTotals();
+          }
+
+          // Recalculate discount
+          if (appliedCoupon.coupon && appliedCoupon.coupon.discountType === 'percentage') {
+            var disc = Math.round((subtotal * appliedCoupon.coupon.discountValue) / 100);
+            if (appliedCoupon.coupon.maxDiscountAmount && disc > appliedCoupon.coupon.maxDiscountAmount) {
+              disc = appliedCoupon.coupon.maxDiscountAmount;
+            }
+            appliedCoupon.discountAmount = Math.min(disc, subtotal);
+          } else {
+            appliedCoupon.discountAmount = Math.min(appliedCoupon.discountAmount, subtotal);
+          }
+
+          var finalTotal = Math.max(0, subtotal - appliedCoupon.discountAmount);
+          if (totalEl) totalEl.innerText = formatCurrency(finalTotal);
+          if (discountEl) discountEl.innerText = '-' + formatCurrency(appliedCoupon.discountAmount);
+          if (discountRow) discountRow.style.display = 'flex';
+
+          if (badgeCode) badgeCode.innerText = appliedCoupon.code;
+          if (badgeDesc) {
+            var desc = appliedCoupon.coupon && appliedCoupon.coupon.discountType === 'percentage'
+              ? '-' + appliedCoupon.coupon.discountValue + '%'
+              : '-' + formatCurrency(appliedCoupon.discountAmount);
+            badgeDesc.innerText = desc;
+          }
+          if (inputGroup) inputGroup.style.display = 'none';
+          if (badge) badge.style.display = 'flex';
+        } else {
+          if (totalEl) totalEl.innerText = formatCurrency(subtotal);
+          if (discountRow) discountRow.style.display = 'none';
+          if (inputGroup) inputGroup.style.display = 'flex';
+          if (badge) badge.style.display = 'none';
+        }
+      }
+
+      window.applyCoupon = async function() {
+        var inp = document.getElementById('voucherCodeInput');
+        var code = (inp ? inp.value : '').trim().toUpperCase();
+        if (!code) {
+          notify('Vui lòng nhập mã giảm giá');
+          return;
+        }
+
+        var currentSubtotal = calculateCartSubtotal();
+        if (currentSubtotal <= 0) {
+          notify('Túi hàng đang trống, không thể áp dụng voucher');
+          return;
+        }
+
+        if (isBackendOnline) {
+          try {
+            var res = await apiRequest('/coupons/apply', {
+              method: 'POST',
+              body: JSON.stringify({ code: code, orderTotal: currentSubtotal })
+            });
+            var discount = Number(res.discountAmount !== undefined ? res.discountAmount : (res.discount || 0));
+            appliedCoupon = {
+              code: code,
+              discountAmount: discount,
+              coupon: res.coupon || { code: code, discountValue: discount }
+            };
+            notify('Áp dụng mã ' + code + ' thành công (-' + formatCurrency(discount) + ')');
+            updateCartTotals();
+          } catch(err) {
+            notify(err.message || 'Mã giảm giá không hợp lệ');
+          }
+        } else {
+          var found = mockCoupons.find(function(c) { return c.code.toUpperCase() === code; });
+          if (!found) {
+            notify('Mã giảm giá "' + code + '" không tồn tại');
+            return;
+          }
+          if (found.isActive === false) {
+            notify('Mã giảm giá "' + code + '" hiện đang tạm dừng');
+            return;
+          }
+          if (found.usageLimit && (found.usedCount || 0) >= found.usageLimit) {
+            notify('Mã giảm giá "' + code + '" đã hết lượt sử dụng');
+            return;
+          }
+          if (found.minOrderValue && currentSubtotal < found.minOrderValue) {
+            notify('Đơn hàng tối thiểu ' + formatCurrency(found.minOrderValue) + ' để sử dụng mã này');
+            return;
+          }
+
+          var discount = 0;
+          if (found.discountType === 'percentage') {
+            discount = Math.round((currentSubtotal * found.discountValue) / 100);
+            if (found.maxDiscountAmount && discount > found.maxDiscountAmount) {
+              discount = found.maxDiscountAmount;
+            }
+          } else {
+            discount = Number(found.discountValue) || 0;
+          }
+          if (discount > currentSubtotal) discount = currentSubtotal;
+
+          appliedCoupon = {
+            code: found.code,
+            discountAmount: discount,
+            coupon: found
+          };
+          notify('Áp dụng mã ' + found.code + ' thành công (-' + formatCurrency(discount) + ')');
+          updateCartTotals();
+        }
+      };
+
+      window.removeCoupon = function() {
+        appliedCoupon = null;
+        var inp = document.getElementById('voucherCodeInput');
+        if (inp) inp.value = '';
+        updateCartTotals();
+        notify('Đã gỡ mã giảm giá');
+      };
+
+      window.openCartDrawer = function() {
+        closeModals();
+        var drawer = document.getElementById('cartDrawer');
+        var list = document.getElementById('cartList');
+        list.innerHTML = '';
+
+        var items = activeCart.items || [];
+        if (items.length === 0) {
+          list.innerHTML = '<div style="text-align:center;padding:40px 0;color:var(--text-3);font-size:13px">Túi hàng của bạn đang trống</div>';
+        } else {
+          items.forEach(function(item) {
+            var price = item.variant ? Number(item.variant.price) : 0;
+
+            var el = document.createElement('div');
+            el.style.cssText = 'display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--hairline)';
+            el.innerHTML =
+              '<img src="' + (item.variant && item.variant.product && item.variant.product.primaryImage ? item.variant.product.primaryImage : 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=200') + '" alt="Sản phẩm" style="width:52px;height:52px;border-radius:var(--r-thumb);object-fit:cover;background:#fbfbfd">' +
+              '<div style="flex:1;min-width:0">' +
+                '<div style="font-size:13.5px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (item.variant && item.variant.product ? item.variant.product.name : 'Sản phẩm') + '</div>' +
+                '<div style="font-size:11px;color:var(--text-3);font-family:var(--mono)">' + (item.variant ? item.variant.sku : '') + '</div>' +
+                '<div style="font-size:13px;font-weight:700;color:var(--text);margin-top:2px;font-variant-numeric:tabular-nums">' + formatCurrency(price) + '</div>' +
+                '<div style="display:flex;align-items:center;gap:6px;margin-top:6px">' +
+                  '<button type="button" class="btn btn-secondary" style="width:24px;height:24px;padding:0" onclick="modifyItemQty(\'' + item.id + '\', ' + (item.quantity - 1) + ')" aria-label="Giảm"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>' +
+                  '<span style="font-size:12px;font-weight:600">' + item.quantity + '</span>' +
+                  '<button type="button" class="btn btn-secondary" style="width:24px;height:24px;padding:0" onclick="modifyItemQty(\'' + item.id + '\', ' + (item.quantity + 1) + ')" aria-label="Tăng"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>' +
+                  '<button type="button" style="margin-left:auto;color:var(--danger);font-size:11.5px;font-weight:500;display:inline-flex;align-items:center;gap:4px" onclick="removeItem(\'' + item.id + '\')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg><span>Xóa</span></button>' +
+                '</div>' +
+              '</div>';
+            list.appendChild(el);
+          });
+        }
+        updateCartTotals();
+        drawer.classList.add('open');
+      };
+
+      window.modifyItemQty = async function(id, qty) {
+        if (qty <= 0) {
+          removeItem(id);
+          return;
+        }
+        if (isBackendOnline) {
+          try {
+            await apiRequest('/cart/items/' + id, { method: 'PUT', body: JSON.stringify({ quantity: qty }) });
+            fetchCartData();
+            setTimeout(openCartDrawer, 180);
+          } catch(e) {}
+        } else {
+          var item = activeCart.items.find(function(i){ return i.id === id; });
+          if (item) item.quantity = qty;
+          updateCartBadge();
+          openCartDrawer();
+        }
+      };
+
+      window.removeItem = async function(id) {
+        if (isBackendOnline) {
+          try {
+            await apiRequest('/cart/items/' + id, { method: 'DELETE' });
+            fetchCartData();
+            setTimeout(openCartDrawer, 180);
+          } catch(e) {}
+        } else {
+          activeCart.items = activeCart.items.filter(function(i){ return i.id !== id; });
+          updateCartBadge();
+          openCartDrawer();
+        }
+      };
+
+      window.toggleCheckout = function() {
+        var form = document.getElementById('checkoutForm');
+        form.style.display = form.style.display === 'none' ? 'block' : 'none';
+      };
+
+      window.submitOrder = async function(e) {
+        e.preventDefault();
+        var name = document.getElementById('chkFullName').value;
+        var phone = document.getElementById('chkPhone').value;
+        var address = document.getElementById('chkAddress').value;
+        var city = document.getElementById('chkCity').value;
+        var payment = document.getElementById('chkPaymentMethod').value;
+
+        var orderPayload = {
+          shippingAddress: { fullName: name, phone: phone, address: address, city: city },
+          paymentMethod: payment
+        };
+        if (appliedCoupon && appliedCoupon.code) {
+          orderPayload.couponCode = appliedCoupon.code;
+        }
+
+        if (isBackendOnline) {
+          try {
+            var res = await apiRequest('/orders', {
+              method: 'POST',
+              body: JSON.stringify(orderPayload)
+            });
+            notify('Đặt hàng thành công! Mã đơn: #' + (res.orderCode || res.id));
+            activeCart = { items: [] };
+            appliedCoupon = null;
+            updateCartBadge();
+            closeDrawers();
+            openOrdersDrawer();
+          } catch(err) {
+            notify(err.message || 'Lỗi khi tạo đơn hàng');
+          }
+        } else {
+          var mockCode = 'ORD-' + Math.floor(Math.random() * 89999 + 10000);
+          if (appliedCoupon && appliedCoupon.coupon) {
+            appliedCoupon.coupon.usedCount = (appliedCoupon.coupon.usedCount || 0) + 1;
+          }
+          notify('Đặt hàng thành công! Mã đơn: #' + mockCode);
+          activeCart = { items: [] };
+          appliedCoupon = null;
+          updateCartBadge();
+          closeDrawers();
+        }
+      };
+
+      window.openOrdersDrawer = async function() {
+        closeModals();
+        closeDrawers();
+        var drawer = document.getElementById('ordersDrawer');
+        var list = document.getElementById('ordersList');
+        list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-3)">Đang tải danh sách đơn hàng...</div>';
+        drawer.classList.add('open');
+
+        var orders = [];
+        if (isBackendOnline && authToken) {
+          try {
+            var res = await apiRequest('/orders');
+            orders = res.data || res || [];
+          } catch(e) {}
+        } else {
+          orders = [
+            { id: 'ORD-78192', totalAmount: 34990000, status: 'processing', createdAt: new Date().toISOString() },
+            { id: 'ORD-65410', totalAmount: 49990000, status: 'completed', createdAt: new Date(Date.now() - 86400000).toISOString() }
+          ];
+        }
+
+        list.innerHTML = '';
+        if (orders.length === 0) {
+          list.innerHTML = '<div style="text-align:center;padding:40px 0;color:var(--text-3)">Bạn chưa có đơn hàng nào</div>';
+          return;
+        }
+
+        orders.forEach(function(order) {
+          var statusColor = order.status === 'completed' ? 'var(--live)' : (order.status === 'cancelled' ? 'var(--danger)' : 'var(--warning)');
+          var card = document.createElement('div');
+          card.style.cssText = 'display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(0,0,0,0.03);border-radius:var(--r-sheet);margin-bottom:8px;border:1px solid var(--hairline)';
+          card.innerHTML =
+            '<div style="width:36px;height:36px;border-radius:8px;background:rgba(0,0,0,0.04);display:grid;place-items:center;color:var(--text-2);flex-shrink:0">' +
+              '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>' +
+            '</div>' +
+            '<div style="flex:1;min-width:0">' +
+              '<div style="font-weight:600;font-size:13.5px;color:var(--text);letter-spacing:-0.01em">#' + (order.orderCode || order.id) + '</div>' +
+              '<div style="font-size:12px;color:var(--text-3);margin-top:1px">' + new Date(order.createdAt).toLocaleDateString('vi-VN') + ' · <b style="color:var(--text);font-variant-numeric:tabular-nums">' + formatCurrency(order.totalAmount) + '</b></div>' +
+            '</div>' +
+            '<span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:var(--r-pill);background:rgba(0,0,0,0.04);color:' + statusColor + ';letter-spacing:0.04em">' + order.status.toUpperCase() + '</span>';
+          list.appendChild(card);
+        });
+      };
+
+      window.openAuthModal = function() {
+        closeDrawers();
+        var unauth = document.getElementById('authUnauthenticated');
+        var auth = document.getElementById('authAuthenticated');
+
+        if (authToken && authUser) {
+          unauth.style.display = 'none';
+          auth.style.display = 'block';
+          document.getElementById('profFullName').innerText = authUser.fullName || 'Người dùng';
+          document.getElementById('profUserEmail').innerText = authUser.email || '';
+          document.getElementById('profUserRole').innerText = (authUser.role || 'customer').toUpperCase();
+          document.getElementById('profAdminShortcut').style.display = authUser.role === 'admin' ? 'block' : 'none';
+        } else {
+          unauth.style.display = 'block';
+          auth.style.display = 'none';
+        }
+        document.getElementById('authModal').classList.add('active');
+      };
+
+      window.fillTestAccount = function(e, p) {
+        document.getElementById('authEmail').value = e;
+        document.getElementById('authPassword').value = p;
+      };
+
+      window.handleAuthLogin = async function(e) {
+        e.preventDefault();
+        var email = document.getElementById('authEmail').value;
+        var pass = document.getElementById('authPassword').value;
+
+        if (isBackendOnline) {
+          try {
+            var res = await apiRequest('/auth/login', {
+              method: 'POST',
+              body: JSON.stringify({ email: email, password: pass })
+            });
+            authToken = res.accessToken;
+            authUser = res.user;
+            localStorage.setItem('om_token', authToken);
+            localStorage.setItem('om_user', JSON.stringify(authUser));
+            notify('Chào mừng ' + authUser.fullName + ' quay trở lại');
+            syncAuthUI();
+            closeModals();
+            fetchCartData();
+          } catch(err) {
+            notify(err.message || 'Đăng nhập không thành công');
+          }
+        } else {
+          authToken = 'mock-jwt';
+          authUser = {
+            id: 'user-mock',
+            email: email,
+            fullName: email.includes('admin') ? 'Quản trị viên' : 'Khách hàng',
+            role: email.includes('admin') ? 'admin' : 'customer'
+          };
+          localStorage.setItem('om_token', authToken);
+          localStorage.setItem('om_user', JSON.stringify(authUser));
+          notify('Đăng nhập thành công (Demo)');
+          syncAuthUI();
+          closeModals();
+        }
+      };
+
+      window.handleAuthLogout = function() {
+        authToken = '';
+        authUser = null;
+        localStorage.removeItem('om_token');
+        localStorage.removeItem('om_user');
+        syncAuthUI();
+        closeModals();
+        notify('Đã đăng xuất tài khoản');
+      };
+
+      function syncAuthUI() {
+        var btn = document.getElementById('userAuthBtn');
+        var userIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>';
+        if (authToken && authUser) {
+          var label = authUser.role === 'admin' ? 'Admin' : (authUser.fullName.split(' ')[0] || 'Tài khoản');
+          btn.innerHTML = userIcon + '<span>' + label + '</span>';
+        } else {
+          btn.innerHTML = userIcon + '<span>Đăng nhập</span>';
+        }
+      }
+
+      window.openAdminModal = function() {
+        closeDrawers();
+        closeModals();
+        document.getElementById('adminModal').classList.add('active');
+        switchAdminSection('stats');
+      };
+
+      window.switchAdminSection = function(sec) {
+        var sections = ['stats', 'products', 'orders', 'coupons'];
+        sections.forEach(function(s) {
+          var tabBtn = document.getElementById('tabAdmin' + s.charAt(0).toUpperCase() + s.slice(1));
+          var view = document.getElementById('admSection' + s.charAt(0).toUpperCase() + s.slice(1));
+          if (tabBtn) tabBtn.classList.toggle('active', s === sec);
+          if (view) view.style.display = s === sec ? 'block' : 'none';
+        });
+
+        if (sec === 'products') loadAdminProducts();
+        if (sec === 'orders') loadAdminOrders();
+        if (sec === 'coupons') loadAdminCoupons();
+      };
+
+      window.toggleAddProductForm = function() {
+        var f = document.getElementById('adminAddProductForm');
+        f.style.display = f.style.display === 'none' ? 'block' : 'none';
+      };
+
+      window.submitAdminCreateProduct = async function(e) {
+        e.preventDefault();
+        var name = document.getElementById('newPName').value;
+        var price = Number(document.getElementById('newPPrice').value);
+        var desc = document.getElementById('newPDesc').value;
+
+        if (isBackendOnline && authToken) {
+          try {
+            await apiRequest('/admin/products', {
+              method: 'POST',
+              body: JSON.stringify({ name: name, basePrice: price, description: desc })
+            });
+            notify('Đã tạo sản phẩm thành công');
+            initializeStore();
+            loadAdminProducts();
+            toggleAddProductForm();
+          } catch(err) {
+            notify(err.message || 'Lỗi tạo sản phẩm');
+          }
+        } else {
+          allProducts.unshift({
+            id: 'mock-' + Date.now(),
+            name: name,
+            basePrice: price,
+            description: desc,
+            category: { name: 'Thiết bị' }
+          });
+          renderCatalog();
+          loadAdminProducts();
+          notify('Đã tạo sản phẩm (Demo)');
+          toggleAddProductForm();
+        }
+      };
+
+      async function loadAdminProducts() {
+        var box = document.getElementById('adminProductTable');
+        box.innerHTML = '';
+        allProducts.forEach(function(p) {
+          var row = document.createElement('div');
+          row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:rgba(0,0,0,0.02);border-radius:var(--r-sheet);margin-bottom:8px';
+          row.innerHTML =
+            '<div>' +
+              '<div style="font-weight:600;color:var(--text)">' + p.name + '</div>' +
+              '<div style="font-size:11.5px;color:var(--text-3);font-variant-numeric:tabular-nums">' + formatCurrency(p.basePrice || p.price) + '</div>' +
+            '</div>' +
+            '<div style="display:flex;gap:6px">' +
+              '<button type="button" class="btn btn-secondary" style="font-size:11.5px;padding:4px 10px;display:inline-flex;align-items:center;gap:4px" onclick="notify(\'Đã đồng bộ SKU\')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg><span>Đồng bộ</span></button>' +
+              '<button type="button" class="btn btn-secondary" style="font-size:11.5px;padding:4px 10px;color:var(--danger);display:inline-flex;align-items:center;gap:4px" onclick="notify(\'Đã xóa sản phẩm\')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg><span>Xóa</span></button>' +
+            '</div>';
+          box.appendChild(row);
+        });
+      }
+
+      async function loadAdminOrders() {
+        var box = document.getElementById('adminOrdersTable');
+        box.innerHTML = '';
+        var orders = [
+          { id: 'ORD-101', name: 'Trần Văn Nam', total: 34990000, status: 'pending' },
+          { id: 'ORD-102', name: 'Lê Thị Mai', total: 49990000, status: 'processing' }
+        ];
+
+        orders.forEach(function(o) {
+          var row = document.createElement('div');
+          row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:rgba(0,0,0,0.02);border-radius:var(--r-sheet);margin-bottom:8px';
+          row.innerHTML =
+            '<div>' +
+              '<div style="font-weight:600;color:var(--text)">#' + o.id + '</div>' +
+              '<div style="font-size:12px;color:var(--text-2)">' + o.name + ' · <span style="font-variant-numeric:tabular-nums">' + formatCurrency(o.total) + '</span></div>' +
+            '</div>' +
+            '<select class="form-input" style="width:130px;height:32px;padding:0 8px;font-size:12px" onchange="notify(\'Cập nhật #' + o.id + ' -> \' + this.value)">' +
+              '<option value="pending"' + (o.status === 'pending' ? ' selected' : '') + '>Pending</option>' +
+              '<option value="processing"' + (o.status === 'processing' ? ' selected' : '') + '>Processing</option>' +
+              '<option value="completed"' + (o.status === 'completed' ? ' selected' : '') + '>Completed</option>' +
+            '</select>';
+          box.appendChild(row);
+        });
+      }
+
+      window.toggleAddCouponForm = function() {
+        var f = document.getElementById('adminAddCouponForm');
+        if (f) f.style.display = f.style.display === 'none' ? 'block' : 'none';
+      };
+
+      window.updateCouponValueLabel = function() {
+        var type = document.getElementById('newCpnType').value;
+        var lbl = document.getElementById('lblCpnValue');
+        var inp = document.getElementById('newCpnValue');
+        if (type === 'percentage') {
+          lbl.innerText = 'Giá trị giảm (%)';
+          inp.placeholder = '10';
+          inp.max = '100';
+        } else {
+          lbl.innerText = 'Giá trị giảm (₫)';
+          inp.placeholder = '500000';
+          inp.removeAttribute('max');
+        }
+      };
+
+      window.loadAdminCoupons = async function() {
+        var box = document.getElementById('adminCouponsTable');
+        box.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-3);font-size:12px">Đang tải danh sách coupon...</div>';
+        var coupons = [];
+        if (isBackendOnline && authToken) {
+          try {
+            var res = await apiRequest('/admin/coupons');
+            coupons = res.data || res || [];
+          } catch(e) {
+            coupons = mockCoupons;
+          }
+        } else {
+          coupons = mockCoupons;
+        }
+
+        box.innerHTML = '';
+        if (!coupons || coupons.length === 0) {
+          box.innerHTML = '<div style="text-align:center;padding:32px 0;color:var(--text-3);font-size:12.5px">Chưa có mã giảm giá nào. Hãy tạo mã mới!</div>';
+          return;
+        }
+
+        coupons.forEach(function(cpn) {
+          var isPct = cpn.discountType === 'percentage';
+          var discountLabel = isPct ? 'Giảm ' + cpn.discountValue + '%' : 'Giảm ' + formatCurrency(cpn.discountValue);
+          var minOrderLabel = Number(cpn.minOrderValue) > 0 ? formatCurrency(cpn.minOrderValue) : 'Không yêu cầu';
+          var usageLabel = (cpn.usedCount || 0) + '/' + (cpn.usageLimit ? cpn.usageLimit : '∞');
+          var isActive = cpn.isActive !== false;
+
+          var row = document.createElement('div');
+          row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:rgba(0,0,0,0.02);border:1px solid var(--hairline);border-radius:var(--r-sheet);margin-bottom:8px';
+          row.innerHTML =
+            '<div style="flex:1;min-width:0;margin-right:12px">' +
+              '<div style="display:flex;align-items:center;gap:8px">' +
+                '<span style="font-family:var(--mono);font-weight:700;font-size:13px;letter-spacing:0.03em;background:rgba(0,0,0,0.06);padding:2px 8px;border-radius:var(--r-chip);color:var(--text)">' + cpn.code + '</span>' +
+                '<span style="font-size:13px;font-weight:600;color:var(--live)">' + discountLabel + '</span>' +
+              '</div>' +
+              '<div style="font-size:11.5px;color:var(--text-3);margin-top:4px">' +
+                'Đơn tối thiểu: <span style="color:var(--text-2);font-variant-numeric:tabular-nums">' + minOrderLabel + '</span> · ' +
+                'Đã dùng: <span style="color:var(--text-2);font-variant-numeric:tabular-nums">' + usageLabel + '</span>' +
+              '</div>' +
+            '</div>' +
+            '<div style="display:flex;align-items:center;gap:6px">' +
+              '<button type="button" class="btn btn-secondary" style="font-size:11.5px;padding:4px 10px;border-radius:var(--r-pill);' +
+                (isActive ? 'color:var(--live);border:1px solid rgba(48,209,88,0.3);' : 'color:var(--text-3);border:1px solid var(--hairline);') +
+                '" onclick="toggleCouponStatus(\'' + cpn.id + '\')">' +
+                '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px">' +
+                  (isActive ? '<polyline points="20 6 9 17 4 12"/>' : '<circle cx="12" cy="12" r="9"/>') +
+                '</svg>' +
+                '<span>' + (isActive ? 'Hoạt động' : 'Tạm dừng') + '</span>' +
+              '</button>' +
+              '<button type="button" class="btn btn-secondary" style="font-size:11.5px;padding:4px 8px;color:var(--danger);border-radius:var(--r-pill)" onclick="deleteCoupon(\'' + cpn.id + '\')" title="Xóa mã">' +
+                '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>' +
+              '</button>' +
+            '</div>';
+          box.appendChild(row);
+        });
+      };
+
+      window.toggleCouponStatus = async function(id) {
+        if (isBackendOnline && authToken) {
+          try {
+            await apiRequest('/admin/coupons/' + id + '/toggle', { method: 'PATCH' });
+            notify('Đã cập nhật trạng thái voucher');
+            loadAdminCoupons();
+            return;
+          } catch(e) {
+            // fallback
+          }
+        }
+        var found = mockCoupons.find(function(c) { return c.id === id; });
+        if (found) {
+          found.isActive = !found.isActive;
+          notify('Mã ' + found.code + ': ' + (found.isActive ? 'Đang hoạt động' : 'Đã tạm dừng'));
+          loadAdminCoupons();
+        }
+      };
+
+      window.deleteCoupon = async function(id) {
+        if (isBackendOnline && authToken) {
+          try {
+            await apiRequest('/admin/coupons/' + id, { method: 'DELETE' });
+            notify('Đã xóa mã voucher');
+            loadAdminCoupons();
+            return;
+          } catch(e) {
+            // fallback
+          }
+        }
+        var idx = mockCoupons.findIndex(function(c) { return c.id === id; });
+        if (idx !== -1) {
+          var removed = mockCoupons.splice(idx, 1)[0];
+          notify('Đã xóa mã ' + (removed ? removed.code : ''));
+          loadAdminCoupons();
+        }
+      };
+
+      window.submitAdminCreateCoupon = async function(e) {
+        e.preventDefault();
+        var code = document.getElementById('newCpnCode').value.trim().toUpperCase();
+        var type = document.getElementById('newCpnType').value;
+        var val = Number(document.getElementById('newCpnValue').value);
+        var minOrder = Number(document.getElementById('newCpnMinOrder').value) || 0;
+        var limit = Number(document.getElementById('newCpnUsageLimit').value) || 100;
+
+        if (!code || !val) {
+          notify('Vui lòng điền đầy đủ thông tin mã và giá trị');
+          return;
+        }
+
+        var couponPayload = {
+          code: code,
+          discountType: type,
+          discountValue: val,
+          minOrderValue: minOrder,
+          usageLimit: limit,
+          isActive: true
+        };
+
+        if (isBackendOnline && authToken) {
+          try {
+            await apiRequest('/admin/coupons', {
+              method: 'POST',
+              body: JSON.stringify(couponPayload)
+            });
+            notify('Đã tạo mã ' + code + ' thành công');
+            toggleAddCouponForm();
+            loadAdminCoupons();
+            return;
+          } catch(err) {
+            notify(err.message || 'Lỗi lưu máy chủ, lưu cục bộ');
+          }
+        }
+
+        var exists = mockCoupons.some(function(c) { return c.code.toUpperCase() === code; });
+        if (exists) {
+          notify('Mã ' + code + ' đã tồn tại');
+          return;
+        }
+
+        mockCoupons.unshift({
+          id: 'cpn-' + Date.now(),
+          code: code,
+          discountType: type,
+          discountValue: val,
+          minOrderValue: minOrder,
+          usageLimit: limit,
+          usedCount: 0,
+          isActive: true
+        });
+
+        notify('Đã tạo mã ' + code + ' thành công (Demo)');
+        document.getElementById('adminAddCouponForm').reset();
+        toggleAddCouponForm();
+        loadAdminCoupons();
+      };
+
+      window.closeModals = function() {
+        document.querySelectorAll('.sheet-overlay').forEach(function(m){ m.classList.remove('active'); });
+      };
+      window.closeDrawers = function() {
+        document.querySelectorAll('.edge-drawer').forEach(function(d){ d.classList.remove('open'); });
+      };
+
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          closeModals();
+          closeDrawers();
+        }
+      });
+
+      initializeStore();
+    })();
+  </script>
+</body>
+</html>

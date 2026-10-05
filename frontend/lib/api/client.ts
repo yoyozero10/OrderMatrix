@@ -5,7 +5,7 @@ const API_BASE_URL =
   "http://localhost:3001/api";
 
 type RequestOptions = {
-  method?: "GET" | "POST" | "PUT" | "DELETE";
+  method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
   body?: unknown;
   token?: string | null;
   query?: object;

@@ -14,7 +14,7 @@ export class Product extends BaseEntity {
   @Column('text')
   description: string;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  @Column('decimal', { precision: 14, scale: 2, default: 0 })
   basePrice: number;
 
   @Column({ type: 'enum', enum: ['active', 'inactive'], default: 'active' })

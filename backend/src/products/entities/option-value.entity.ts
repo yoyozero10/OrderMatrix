@@ -8,11 +8,11 @@ export class OptionValue extends BaseEntity {
   @Column()
   value: string;
 
-  @Column({ nullable: true })
-  colorCode: string;
+  @Column({ type: 'varchar', nullable: true })
+  colorCode?: string | null;
 
-  @Column({ nullable: true })
-  imageUrl: string;
+  @Column({ type: 'varchar', nullable: true })
+  imageUrl?: string | null;
 
   @Column({ default: 0 })
   displayOrder: number;

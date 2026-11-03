@@ -4,8 +4,13 @@ import { Repository, DataSource } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Category } from '../../categories/entities/category.entity';
 import { Product } from '../../products/entities/product.entity';
+import { ProductVariant } from '../../products/entities/product-variant.entity';
 import { ProductImage } from '../../products/entities/product-image.entity';
+import { OptionType } from '../../products/entities/option-type.entity';
+import { OptionValue } from '../../products/entities/option-value.entity';
+import { VariantOptionValue } from '../../products/entities/variant-option-value.entity';
 import { User } from '../../users/entities/user.entity';
+import { Coupon } from '../../coupons/entities/coupon.entity';
 
 @Injectable()
 export class SeedService {
@@ -18,47 +23,77 @@ export class SeedService {
     private productRepository: Repository<Product>,
     @InjectRepository(ProductImage)
     private productImageRepository: Repository<ProductImage>,
+    @InjectRepository(ProductVariant)
+    private variantRepository: Repository<ProductVariant>,
+    @InjectRepository(OptionType)
+    private optionTypeRepository: Repository<OptionType>,
+    @InjectRepository(OptionValue)
+    private optionValueRepository: Repository<OptionValue>,
+    @InjectRepository(VariantOptionValue)
+    private variantOptionValueRepository: Repository<VariantOptionValue>,
     private dataSource: DataSource,
   ) {}
 
   async seed() {
-    this.logger.log('🌱 Bắt đầu seed dữ liệu...');
+    this.logger.log('🌱 Bắt đầu seed cơ sở dữ liệu Apple & High-Tech...');
 
-    // Clear existing data
+    // 1. Dọn dẹp dữ liệu cũ an toàn
     await this.clearData();
 
-    // Seed users (Admin and Customer)
+    // 2. Tạo tài khoản mẫu
     await this.seedUsers();
     this.logger.log('✅ Đã tạo mock users (admin và customer)');
 
-    // Seed categories
+    // 3. Tạo danh mục sản phẩm
     const categories = await this.seedCategories();
-    this.logger.log(`✅ Đã tạo ${categories.length} categories`);
+    this.logger.log(`✅ Đã tạo ${Object.keys(categories).length} danh mục sản phẩm`);
 
-    // Seed products
-    const products = await this.seedProducts(categories);
-    this.logger.log(`✅ Đã tạo ${products.length} products`);
+    // 4. Tạo Option Types
+    const optionTypes = await this.seedOptionTypes();
+    this.logger.log(`✅ Đã tạo ${Object.keys(optionTypes).length} loại tùy chọn (Option Types)`);
 
-    this.logger.log('🎉 Seed dữ liệu hoàn tất!');
+    // 5. Tạo Coupons mẫu
+    await this.seedCoupons();
+    this.logger.log('✅ Đã tạo các mã giảm giá (Coupons) mẫu');
+
+    // 6. Tạo danh sách sản phẩm & ma trận biến thể
+    const products = await this.seedProducts(categories, optionTypes);
+    this.logger.log(`✅ Đã tạo thành công ${products.length} sản phẩm đầy đủ biến thể và hình ảnh chất lượng cao!`);
+
+    this.logger.log('🎉 Quá trình seed dữ liệu hoàn tất 100%!');
   }
 
   private async clearData() {
-    this.logger.log('🗑️ Xóa dữ liệu cũ...');
-
+    this.logger.log('🗑️ Xóa sạch dữ liệu cũ...');
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
 
     try {
-      // Tắt foreign key checks
       await queryRunner.query('SET FOREIGN_KEY_CHECKS = 0');
-
-      // Xóa dữ liệu
-      await queryRunner.query('TRUNCATE TABLE product_images');
-      await queryRunner.query('TRUNCATE TABLE products');
-      await queryRunner.query('TRUNCATE TABLE categories');
-      await queryRunner.query('TRUNCATE TABLE users');
-
-      // Bật lại foreign key checks
+      const tables = [
+        'coupon_usages',
+        'coupons',
+        'cart_items',
+        'carts',
+        'order_status_history',
+        'order_items',
+        'orders',
+        'variant_option_values',
+        'product_variants',
+        'option_values',
+        'option_types',
+        'product_images',
+        'products',
+        'categories',
+        'users',
+      ];
+      for (const table of tables) {
+        try {
+          await queryRunner.query(`TRUNCATE TABLE ${table}`);
+        } catch {
+          // Bỏ qua nếu bảng chưa tồn tại
+        }
+      }
       await queryRunner.query('SET FOREIGN_KEY_CHECKS = 1');
     } finally {
       await queryRunner.release();
@@ -67,380 +102,904 @@ export class SeedService {
 
   private async seedUsers() {
     const userRepository = this.dataSource.getRepository(User);
-    
     const hashedPassword = await bcrypt.hash('Password123', 10);
-    
+
     const admin = userRepository.create({
       email: 'admin@example.com',
       password: hashedPassword,
-      fullName: 'Quản trị viên',
-      phone: '0123456789',
+      fullName: 'Quản trị viên Hệ thống',
+      phone: '0901234567',
       role: 'admin',
       status: 'active',
     });
-    
+
     const customer = userRepository.create({
       email: 'user@example.com',
       password: hashedPassword,
-      fullName: 'Khách hàng mẫu',
+      fullName: 'Nguyễn Văn Khách',
       phone: '0987654321',
       role: 'customer',
       status: 'active',
     });
-    
+
     await userRepository.save(admin);
     await userRepository.save(customer);
   }
 
-  private async seedCategories(): Promise<Category[]> {
+  private async seedCategories(): Promise<Record<string, Category>> {
     const categoriesData = [
       {
         name: 'Điện thoại',
-        description:
-          'Điện thoại thông minh các loại từ nhiều thương hiệu nổi tiếng',
-        image:
-          'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400',
+        description: 'iPhone và điện thoại thông minh cao cấp chính hãng Apple',
+        image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600',
       },
       {
         name: 'Laptop',
-        description: 'Laptop văn phòng, gaming và đồ họa chất lượng cao',
-        image:
-          'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400',
+        description: 'MacBook Pro, MacBook Air hiệu năng vượt trội với chip Apple Silicon',
+        image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600',
       },
       {
         name: 'Máy tính bảng',
-        description: 'Tablet đa năng cho công việc và giải trí',
-        image:
-          'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=400',
-      },
-      {
-        name: 'Phụ kiện',
-        description:
-          'Phụ kiện điện tử: tai nghe, sạc, ốp lưng, và nhiều hơn nữa',
-        image:
-          'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400',
+        description: 'iPad Pro, iPad Air, iPad mini màn hình đỉnh cao cho sáng tạo và công việc',
+        image: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=600',
       },
       {
         name: 'Đồng hồ thông minh',
-        description:
-          'Smartwatch và đồng hồ thể thao từ các thương hiệu hàng đầu',
-        image:
-          'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400',
+        description: 'Apple Watch Ultra, Series 9 theo dõi sức khỏe và thể thao đỉnh cao',
+        image: 'https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=600',
+      },
+      {
+        name: 'Âm thanh',
+        description: 'AirPods Pro, AirPods Max âm thanh không gian sống động và chống ồn chủ động',
+        image: 'https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=600',
+      },
+      {
+        name: 'Phụ kiện',
+        description: 'Củ sạc nhanh, cáp sạc MagSafe, ốp lưng và phụ kiện chính hãng Apple',
+        image: 'https://images.unsplash.com/photo-1609081219090-a6d81d3085bf?w=600',
       },
     ];
 
-    const categories: Category[] = [];
+    const categoryMap: Record<string, Category> = {};
     for (const data of categoriesData) {
       const category = this.categoryRepository.create(data);
-      categories.push(await this.categoryRepository.save(category));
+      const saved = await this.categoryRepository.save(category);
+      categoryMap[data.name] = saved;
     }
 
-    return categories;
+    return categoryMap;
   }
 
-  private async seedProducts(categories: Category[]): Promise<Product[]> {
-    const productsData = [
-      // Điện thoại (category 0)
+  private async seedOptionTypes(): Promise<Record<string, OptionType>> {
+    const typesData = [
+      { name: 'Màu sắc', displayOrder: 1 },
+      { name: 'Dung lượng', displayOrder: 2 },
+      { name: 'RAM', displayOrder: 3 },
+      { name: 'Ổ cứng SSD', displayOrder: 4 },
+      { name: 'Kích thước', displayOrder: 5 },
+      { name: 'Loại dây', displayOrder: 6 },
+      { name: 'Cổng kết nối', displayOrder: 7 },
+    ];
+
+    const typeMap: Record<string, OptionType> = {};
+    for (const t of typesData) {
+      const optionType = this.optionTypeRepository.create(t);
+      const saved = await this.optionTypeRepository.save(optionType);
+      typeMap[t.name] = saved;
+    }
+
+    return typeMap;
+  }
+
+  private async seedCoupons() {
+    const couponRepo = this.dataSource.getRepository(Coupon);
+    const now = new Date();
+    const nextYear = new Date(now.getFullYear() + 2, 11, 31);
+
+    const coupons = [
+      couponRepo.create({
+        code: 'WELCOME10',
+        discountType: 'percentage',
+        discountValue: 10,
+        maxDiscountAmount: 500000,
+        minOrderValue: 200000,
+        usageLimit: 1000,
+        userUsageLimit: 1,
+        startDate: new Date('2026-01-01'),
+        endDate: nextYear,
+        isActive: true,
+      }),
+      couponRepo.create({
+        code: 'APPLE500K',
+        discountType: 'fixed',
+        discountValue: 500000,
+        minOrderValue: 10000000,
+        usageLimit: 200,
+        userUsageLimit: 1,
+        startDate: new Date('2026-01-01'),
+        endDate: nextYear,
+        isActive: true,
+      }),
+      couponRepo.create({
+        code: 'TECH5',
+        discountType: 'percentage',
+        discountValue: 5,
+        maxDiscountAmount: 1000000,
+        minOrderValue: 5000000,
+        usageLimit: 500,
+        userUsageLimit: 2,
+        startDate: new Date('2026-01-01'),
+        endDate: nextYear,
+        isActive: true,
+      }),
+    ];
+
+    await couponRepo.save(coupons);
+  }
+
+  private async seedProducts(
+    categories: Record<string, Category>,
+    types: Record<string, OptionType>,
+  ): Promise<Product[]> {
+    const products: Product[] = [];
+
+    // Helper tạo OptionValue
+    const createOptionVal = async (
+      type: OptionType,
+      value: string,
+      colorCode: string | null = null,
+      imageUrl: string | null = null,
+      displayOrder: number = 0,
+    ): Promise<OptionValue> => {
+      const ov = this.optionValueRepository.create({
+        optionType: type,
+        value,
+        colorCode: colorCode ?? undefined,
+        imageUrl: imageUrl ?? undefined,
+        displayOrder,
+      });
+      return await this.optionValueRepository.save(ov);
+    };
+
+    // Helper tạo Variant và liên kết VariantOptionValue
+    const createVariantWithValues = async (
+      product: Product,
+      sku: string,
+      price: number,
+      stock: number,
+      optionValues: OptionValue[],
+    ): Promise<ProductVariant> => {
+      const variant = this.variantRepository.create({
+        sku,
+        price,
+        stock,
+        status: 'active',
+        product,
+      });
+      const savedVariant = await this.variantRepository.save(variant);
+
+      for (const ov of optionValues) {
+        const vov = this.variantOptionValueRepository.create({
+          variant: savedVariant,
+          optionValue: ov,
+        });
+        await this.variantOptionValueRepository.save(vov);
+      }
+      return savedVariant;
+    };
+
+    // Helper thêm danh sách ProductImages
+    const attachImages = async (product: Product, imageUrls: string[]) => {
+      for (let i = 0; i < imageUrls.length; i++) {
+        const img = this.productImageRepository.create({
+          imageUrl: imageUrls[i],
+          isPrimary: i === 0,
+          displayOrder: i,
+          product,
+        });
+        await this.productImageRepository.save(img);
+      }
+    };
+
+    // =========================================================================
+    // 1. iPhone 16 Pro Max
+    // =========================================================================
+    const ip16pm = await this.productRepository.save(
+      this.productRepository.create({
+        name: 'iPhone 16 Pro Max',
+        description:
+          'iPhone 16 Pro Max trang bị chip A18 Pro tiến trình 3nm thế hệ thứ hai với CPU 6 lõi và GPU 6 lõi, hỗ trợ Apple Intelligence đỉnh cao. Màn hình Super Retina XDR OLED 6.9 inch viền bezel siêu mỏng, tần số quét ProMotion 120Hz. Khung viền Titanium Cấp 5 hoàn thiện chải xước tinh xảo cùng nút bấm Điều Khiển Camera (Camera Control) xúc giác tiên tiến. Camera chính 48MP Fusion, góc siêu rộng 48MP và camera tele tiềm vọng 5x mang lại thước phim chuẩn điện ảnh 4K 120fps Dolby Vision.',
+        basePrice: 34990000,
+        status: 'active',
+        category: categories['Điện thoại'],
+      }),
+    );
+    await attachImages(ip16pm, [
+      'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=1000',
+      'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=1000',
+      'https://images.unsplash.com/photo-1580910051074-3eb694886505?w=1000',
+      'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=1000',
+    ]);
+
+    const ip16Colors = [
       {
+        val: 'Desert Titanium',
+        code: '#C3A68F',
+        img: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=800',
+        tag: 'DES',
+      },
+      {
+        val: 'Natural Titanium',
+        code: '#9E978E',
+        img: 'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=800',
+        tag: 'NAT',
+      },
+      {
+        val: 'White Titanium',
+        code: '#F2F1ED',
+        img: 'https://images.unsplash.com/photo-1580910051074-3eb694886505?w=800',
+        tag: 'WHT',
+      },
+      {
+        val: 'Black Titanium',
+        code: '#1D1D1F',
+        img: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800',
+        tag: 'BLK',
+      },
+    ];
+    const ip16Capacities = [
+      { val: '256GB', price: 34990000, tag: '256' },
+      { val: '512GB', price: 40990000, tag: '512' },
+      { val: '1TB', price: 46990000, tag: '1TB' },
+    ];
+
+    const ip16ColorOvs = await Promise.all(
+      ip16Colors.map((c, idx) =>
+        createOptionVal(types['Màu sắc'], c.val, c.code, c.img, idx + 1),
+      ),
+    );
+    const ip16CapOvs = await Promise.all(
+      ip16Capacities.map((c, idx) =>
+        createOptionVal(types['Dung lượng'], c.val, null, null, idx + 1),
+      ),
+    );
+
+    for (let i = 0; i < ip16Colors.length; i++) {
+      for (let j = 0; j < ip16Capacities.length; j++) {
+        await createVariantWithValues(
+          ip16pm,
+          `IP16PM-${ip16Colors[i].tag}-${ip16Capacities[j].tag}`,
+          ip16Capacities[j].price,
+          35,
+          [ip16ColorOvs[i], ip16CapOvs[j]],
+        );
+      }
+    }
+    products.push(ip16pm);
+
+    // =========================================================================
+    // 2. iPhone 15 Pro Max
+    // =========================================================================
+    const ip15pm = await this.productRepository.save(
+      this.productRepository.create({
         name: 'iPhone 15 Pro Max',
         description:
-          'iPhone 15 Pro Max với chip A17 Pro, camera 48MP, màn hình Super Retina XDR 6.7 inch. Thiết kế titanium sang trọng, pin dùng cả ngày.',
-        price: 34990000,
-        stock: 50,
-        categoryIndex: 0,
-        images: [
-          'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=400',
-          'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400',
-        ],
-      },
-      {
-        name: 'iPhone 15',
-        description:
-          'iPhone 15 với Dynamic Island, camera 48MP, chip A16 Bionic mạnh mẽ. Màn hình Super Retina XDR 6.1 inch.',
-        price: 24990000,
-        stock: 80,
-        categoryIndex: 0,
-        images: [
-          'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=400',
-        ],
-      },
-      {
-        name: 'Samsung Galaxy S24 Ultra',
-        description:
-          'Galaxy S24 Ultra với S Pen tích hợp, camera 200MP, chip Snapdragon 8 Gen 3. Màn hình Dynamic AMOLED 2X 6.8 inch.',
-        price: 33990000,
-        stock: 45,
-        categoryIndex: 0,
-        images: [
-          'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=400',
-        ],
-      },
-      {
-        name: 'Samsung Galaxy A54 5G',
-        description:
-          'Galaxy A54 5G với màn hình Super AMOLED 6.4 inch, camera 50MP, pin 5000mAh. Hiệu năng mạnh mẽ trong tầm giá.',
-        price: 10990000,
-        stock: 120,
-        categoryIndex: 0,
-        images: [
-          'https://images.unsplash.com/photo-1565849904461-04a58ad377e0?w=400',
-        ],
-      },
-      {
-        name: 'Xiaomi 14 Ultra',
-        description:
-          'Xiaomi 14 Ultra với camera Leica chuyên nghiệp, chip Snapdragon 8 Gen 3. Màn hình LTPO AMOLED 6.73 inch.',
-        price: 29990000,
-        stock: 35,
-        categoryIndex: 0,
-        images: [
-          'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=400',
-        ],
-      },
-      {
-        name: 'OPPO Find X7 Ultra',
-        description:
-          'OPPO Find X7 Ultra với hệ thống camera Hasselblad, màn hình LTPO AMOLED 6.82 inch, sạc nhanh 100W.',
-        price: 26990000,
-        stock: 40,
-        categoryIndex: 0,
-        images: [
-          'https://images.unsplash.com/photo-1574944985070-8f3ebc6b79d2?w=400',
-        ],
-      },
+          'iPhone 15 Pro Max đột phá với thiết kế khung Titanium hàng không vũ trụ chuẩn Grade 5, giúp trọng lượng giảm đáng kể và cảm giác cầm nắm thoải mái. Vi xử lý Apple A17 Pro hỗ trợ dò tia Ray Tracing phần cứng sống động. Nút Tác Vụ Action Button tùy biến linh hoạt, cổng sạc USB-C hỗ trợ truyền tải USB 3 tốc độ 10Gbps và ống kính tiềm vọng Zoom quang học 5x độc quyền.',
+        basePrice: 29990000,
+        status: 'active',
+        category: categories['Điện thoại'],
+      }),
+    );
+    await attachImages(ip15pm, [
+      'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=1000',
+      'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=1000',
+      'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=1000',
+      'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=1000',
+    ]);
 
-      // Laptop (category 1)
+    const ip15Colors = [
       {
-        name: 'MacBook Pro 14 M3 Pro',
-        description:
-          'MacBook Pro 14 inch với chip M3 Pro, RAM 18GB, SSD 512GB. Màn hình Liquid Retina XDR, thời lượng pin lên đến 17 giờ.',
-        price: 49990000,
-        stock: 25,
-        categoryIndex: 1,
-        images: [
-          'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400',
-          'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=400',
-        ],
+        val: 'Natural Titanium',
+        code: '#9E978E',
+        img: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=800',
+        tag: 'NAT',
       },
       {
-        name: 'MacBook Air M3',
-        description:
-          'MacBook Air 13 inch với chip M3, RAM 8GB, SSD 256GB. Thiết kế mỏng nhẹ, pin dùng cả ngày, hoàn hảo cho công việc.',
-        price: 27990000,
-        stock: 60,
-        categoryIndex: 1,
-        images: [
-          'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=400',
-        ],
+        val: 'Blue Titanium',
+        code: '#4B6CB7',
+        img: 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800',
+        tag: 'BLU',
       },
       {
-        name: 'Dell XPS 15',
-        description:
-          'Dell XPS 15 với Intel Core i7 Gen 13, RAM 16GB, SSD 512GB. Màn hình OLED 15.6 inch 3.5K, card RTX 4050.',
-        price: 42990000,
-        stock: 20,
-        categoryIndex: 1,
-        images: [
-          'https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=400',
-        ],
+        val: 'White Titanium',
+        code: '#F2F1ED',
+        img: 'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=800',
+        tag: 'WHT',
       },
       {
-        name: 'ASUS ROG Strix G16',
-        description:
-          'Laptop gaming ASUS ROG Strix G16 với RTX 4070, Intel Core i9, RAM 32GB. Màn hình 16 inch 240Hz.',
-        price: 45990000,
-        stock: 15,
-        categoryIndex: 1,
-        images: [
-          'https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=400',
-        ],
+        val: 'Black Titanium',
+        code: '#1D1D1F',
+        img: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800',
+        tag: 'BLK',
       },
-      {
-        name: 'Lenovo ThinkPad X1 Carbon',
-        description:
-          'ThinkPad X1 Carbon Gen 11 với Intel Core i7, RAM 16GB, SSD 512GB. Thiết kế doanh nhân, bàn phím tuyệt vời.',
-        price: 38990000,
-        stock: 30,
-        categoryIndex: 1,
-        images: [
-          'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=400',
-        ],
-      },
-      {
-        name: 'HP Spectre x360',
-        description:
-          'HP Spectre x360 2-in-1 với màn hình cảm ứng OLED 14 inch, Intel Core i7, RAM 16GB. Thiết kế cao cấp.',
-        price: 35990000,
-        stock: 25,
-        categoryIndex: 1,
-        images: [
-          'https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=400',
-        ],
-      },
+    ];
+    const ip15Capacities = [
+      { val: '256GB', price: 29990000, tag: '256' },
+      { val: '512GB', price: 34990000, tag: '512' },
+      { val: '1TB', price: 39990000, tag: '1TB' },
+    ];
 
-      // Máy tính bảng (category 2)
-      {
-        name: 'iPad Pro M4 12.9 inch',
-        description:
-          'iPad Pro 12.9 inch với chip M4, màn hình Liquid Retina XDR, hỗ trợ Apple Pencil Pro. Mạnh mẽ như laptop.',
-        price: 32990000,
-        stock: 35,
-        categoryIndex: 2,
-        images: [
-          'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=400',
-        ],
-      },
-      {
-        name: 'iPad Air M2',
-        description:
-          'iPad Air với chip M2, màn hình Liquid Retina 10.9 inch, hỗ trợ Apple Pencil và Magic Keyboard.',
-        price: 18990000,
-        stock: 50,
-        categoryIndex: 2,
-        images: [
-          'https://images.unsplash.com/photo-1561154464-82e9adf32764?w=400',
-        ],
-      },
-      {
-        name: 'Samsung Galaxy Tab S9 Ultra',
-        description:
-          'Galaxy Tab S9 Ultra với màn hình Dynamic AMOLED 2X 14.6 inch, S Pen, chip Snapdragon 8 Gen 2.',
-        price: 28990000,
-        stock: 25,
-        categoryIndex: 2,
-        images: [
-          'https://images.unsplash.com/photo-1632634417939-49b449c11c1f?w=400',
-        ],
-      },
-      {
-        name: 'iPad Mini 6',
-        description:
-          'iPad Mini 6 với chip A15 Bionic, màn hình Liquid Retina 8.3 inch. Nhỏ gọn, mạnh mẽ, dễ mang theo.',
-        price: 14990000,
-        stock: 45,
-        categoryIndex: 2,
-        images: [
-          'https://images.unsplash.com/photo-1585790050230-5dd28404ccb9?w=400',
-        ],
-      },
+    const ip15ColorOvs = await Promise.all(
+      ip15Colors.map((c, idx) =>
+        createOptionVal(types['Màu sắc'], c.val, c.code, c.img, idx + 1),
+      ),
+    );
+    const ip15CapOvs = await Promise.all(
+      ip15Capacities.map((c, idx) =>
+        createOptionVal(types['Dung lượng'], c.val, null, null, idx + 1),
+      ),
+    );
 
-      // Phụ kiện (category 3)
-      {
-        name: 'AirPods Pro 2',
-        description:
-          'AirPods Pro thế hệ 2 với chip H2, chống ồn chủ động, âm thanh không gian. Hộp sạc MagSafe.',
-        price: 6290000,
-        stock: 100,
-        categoryIndex: 3,
-        images: [
-          'https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=400',
-        ],
-      },
-      {
-        name: 'Samsung Galaxy Buds2 Pro',
-        description:
-          'Galaxy Buds2 Pro với chống ồn chủ động thông minh, âm thanh Hi-Fi 24-bit, chống nước IPX7.',
-        price: 4990000,
-        stock: 80,
-        categoryIndex: 3,
-        images: [
-          'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400',
-        ],
-      },
-      {
-        name: 'Sạc MagSafe Apple',
-        description:
-          'Bộ sạc MagSafe 15W chính hãng Apple, tương thích iPhone 12 trở lên. Sạc nhanh, tiện lợi.',
-        price: 1190000,
-        stock: 150,
-        categoryIndex: 3,
-        images: [
-          'https://images.unsplash.com/photo-1609081219090-a6d81d3085bf?w=400',
-        ],
-      },
-      {
-        name: 'Anker PowerCore 20000mAh',
-        description:
-          'Pin dự phòng Anker 20000mAh với công nghệ PowerIQ, sạc nhanh 22.5W, 2 cổng USB-C.',
-        price: 890000,
-        stock: 200,
-        categoryIndex: 3,
-        images: [
-          'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=400',
-        ],
-      },
+    for (let i = 0; i < ip15Colors.length; i++) {
+      for (let j = 0; j < ip15Capacities.length; j++) {
+        await createVariantWithValues(
+          ip15pm,
+          `IP15PM-${ip15Colors[i].tag}-${ip15Capacities[j].tag}`,
+          ip15Capacities[j].price,
+          40,
+          [ip15ColorOvs[i], ip15CapOvs[j]],
+        );
+      }
+    }
+    products.push(ip15pm);
 
-      // Đồng hồ thông minh (category 4)
+    // =========================================================================
+    // 3. MacBook Pro 16 M3 Max
+    // =========================================================================
+    const mbp16 = await this.productRepository.save(
+      this.productRepository.create({
+        name: 'MacBook Pro 16 M3 Max',
+        description:
+          'MacBook Pro 16 inch sức mạnh quái thú với chip Apple M3 Max (16-core CPU, 40-core GPU, 16-core Neural Engine). Màn hình Liquid Retina XDR 16.2 inch độ phân giải 3456x2234, độ tương phản 1.000.000:1, độ sáng HDR đỉnh 1600 nits. Hệ thống 6 loa âm thanh trường rộng Dolby Atmos, 3 cổng Thunderbolt 4, cổng HDMI 8K, khe thẻ SDXC và sạc MagSafe 3 tiện lợi. Thời lượng pin đạt tới 22 giờ liên tục.',
+        basePrice: 89990000,
+        status: 'active',
+        category: categories['Laptop'],
+      }),
+    );
+    await attachImages(mbp16, [
+      'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=1000',
+      'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=1000',
+      'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=1000',
+    ]);
+
+    const mbpColors = [
       {
+        val: 'Space Black',
+        code: '#2E2F32',
+        img: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800',
+        tag: 'SB',
+      },
+      {
+        val: 'Silver',
+        code: '#E3E4E5',
+        img: 'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=800',
+        tag: 'SIL',
+      },
+    ];
+    const mbpRams = [
+      { val: '36GB', extraPrice: 0, tag: '36' },
+      { val: '48GB', extraPrice: 12000000, tag: '48' },
+      { val: '128GB', extraPrice: 35000000, tag: '128' },
+    ];
+    const mbpSsds = [
+      { val: '512GB', extraPrice: 0, tag: '512' },
+      { val: '1TB', extraPrice: 6000000, tag: '1TB' },
+      { val: '2TB', extraPrice: 18000000, tag: '2TB' },
+    ];
+
+    const mbpColorOvs = await Promise.all(
+      mbpColors.map((c, idx) =>
+        createOptionVal(types['Màu sắc'], c.val, c.code, c.img, idx + 1),
+      ),
+    );
+    const mbpRamOvs = await Promise.all(
+      mbpRams.map((r, idx) =>
+        createOptionVal(types['RAM'], r.val, null, null, idx + 1),
+      ),
+    );
+    const mbpSsdOvs = await Promise.all(
+      mbpSsds.map((s, idx) =>
+        createOptionVal(types['Ổ cứng SSD'], s.val, null, null, idx + 1),
+      ),
+    );
+
+    for (let c = 0; c < mbpColors.length; c++) {
+      for (let r = 0; r < mbpRams.length; r++) {
+        for (let s = 0; s < mbpSsds.length; s++) {
+          const variantPrice =
+            89990000 + mbpRams[r].extraPrice + mbpSsds[s].extraPrice;
+          await createVariantWithValues(
+            mbp16,
+            `MBP16M3M-${mbpColors[c].tag}-${mbpRams[r].tag}-${mbpSsds[s].tag}`,
+            variantPrice,
+            15,
+            [mbpColorOvs[c], mbpRamOvs[r], mbpSsdOvs[s]],
+          );
+        }
+      }
+    }
+    products.push(mbp16);
+
+    // =========================================================================
+    // 4. MacBook Air 15 M3
+    // =========================================================================
+    const mba15 = await this.productRepository.save(
+      this.productRepository.create({
+        name: 'MacBook Air 15 M3',
+        description:
+          'MacBook Air 15.3 inch với chip Apple M3 cực kỳ mỏng nhẹ chỉ 11.5mm. Màn hình Liquid Retina 500 nits sống động với 1 tỷ màu, thiết kế không quạt hoạt động hoàn toàn tĩnh lặng. Hỗ trợ kết nối tối đa hai màn hình ngoài cùng thời lượng pin lên đến 18 giờ bền bỉ.',
+        basePrice: 32990000,
+        status: 'active',
+        category: categories['Laptop'],
+      }),
+    );
+    await attachImages(mba15, [
+      'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=1000',
+      'https://images.unsplash.com/photo-1516387938699-a93567ec168e?w=1000',
+      'https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=1000',
+      'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=1000',
+    ]);
+
+    const mbaColors = [
+      {
+        val: 'Midnight',
+        code: '#191F26',
+        img: 'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=800',
+        tag: 'MID',
+      },
+      {
+        val: 'Starlight',
+        code: '#F0E5D8',
+        img: 'https://images.unsplash.com/photo-1516387938699-a93567ec168e?w=800',
+        tag: 'STA',
+      },
+      {
+        val: 'Space Gray',
+        code: '#535150',
+        img: 'https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=800',
+        tag: 'SGY',
+      },
+      {
+        val: 'Silver',
+        code: '#E3E4E5',
+        img: 'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=800',
+        tag: 'SIL',
+      },
+    ];
+    const mbaCapacities = [
+      { val: '256GB', price: 32990000, tag: '256' },
+      { val: '512GB', price: 37990000, tag: '512' },
+    ];
+
+    const mbaColorOvs = await Promise.all(
+      mbaColors.map((c, idx) =>
+        createOptionVal(types['Màu sắc'], c.val, c.code, c.img, idx + 1),
+      ),
+    );
+    const mbaCapOvs = await Promise.all(
+      mbaCapacities.map((c, idx) =>
+        createOptionVal(types['Dung lượng'], c.val, null, null, idx + 1),
+      ),
+    );
+
+    for (let c = 0; c < mbaColors.length; c++) {
+      for (let cp = 0; cp < mbaCapacities.length; cp++) {
+        await createVariantWithValues(
+          mba15,
+          `MBA15M3-${mbaColors[c].tag}-${mbaCapacities[cp].tag}`,
+          mbaCapacities[cp].price,
+          30,
+          [mbaColorOvs[c], mbaCapOvs[cp]],
+        );
+      }
+    }
+    products.push(mba15);
+
+    // =========================================================================
+    // 5. iPad Pro M4
+    // =========================================================================
+    const ipadPro = await this.productRepository.save(
+      this.productRepository.create({
+        name: 'iPad Pro M4',
+        description:
+          'iPad Pro 13 inch đột phá với chip Apple M4 trên tiến trình 3nm, mang lại hiệu năng đồ họa cao hơn gấp 4 lần. Màn hình Ultra Retina XDR sử dụng công nghệ OLED hai lớp (Tandem OLED) cho độ sáng full-screen 1000 nits và peak 1600 nits. Thiết kế siêu mỏng nhẹ chỉ 5.1mm, mỏng nhất trong lịch sử sản phẩm Apple, tương thích bút Apple Pencil Pro cảm ứng xoay và phản hồi rung bóp.',
+        basePrice: 28990000,
+        status: 'active',
+        category: categories['Máy tính bảng'],
+      }),
+    );
+    await attachImages(ipadPro, [
+      'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=1000',
+      'https://images.unsplash.com/photo-1561154464-82e9adf32764?w=1000',
+      'https://images.unsplash.com/photo-1585790050230-5dd28404ccb9?w=1000',
+    ]);
+
+    const ipadColors = [
+      {
+        val: 'Space Black',
+        code: '#2E2F32',
+        img: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=800',
+        tag: 'SB',
+      },
+      {
+        val: 'Silver',
+        code: '#E3E4E5',
+        img: 'https://images.unsplash.com/photo-1561154464-82e9adf32764?w=800',
+        tag: 'SIL',
+      },
+    ];
+    const ipadCapacities = [
+      { val: '256GB', price: 28990000, tag: '256' },
+      { val: '512GB', price: 34490000, tag: '512' },
+      { val: '1TB', price: 45990000, tag: '1TB' },
+    ];
+
+    const ipadColorOvs = await Promise.all(
+      ipadColors.map((c, idx) =>
+        createOptionVal(types['Màu sắc'], c.val, c.code, c.img, idx + 1),
+      ),
+    );
+    const ipadCapOvs = await Promise.all(
+      ipadCapacities.map((c, idx) =>
+        createOptionVal(types['Dung lượng'], c.val, null, null, idx + 1),
+      ),
+    );
+
+    for (let c = 0; c < ipadColors.length; c++) {
+      for (let cp = 0; cp < ipadCapacities.length; cp++) {
+        await createVariantWithValues(
+          ipadPro,
+          `IPADM4-${ipadColors[c].tag}-${ipadCapacities[cp].tag}`,
+          ipadCapacities[cp].price,
+          25,
+          [ipadColorOvs[c], ipadCapOvs[cp]],
+        );
+      }
+    }
+    products.push(ipadPro);
+
+    // =========================================================================
+    // 6. Apple Watch Ultra 2
+    // =========================================================================
+    const awu2 = await this.productRepository.save(
+      this.productRepository.create({
         name: 'Apple Watch Ultra 2',
         description:
-          'Apple Watch Ultra 2 với vỏ titanium 49mm, GPS + Cellular, pin 36 giờ. Dành cho vận động viên.',
-        price: 21990000,
-        stock: 30,
-        categoryIndex: 4,
-        images: [
-          'https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=400',
-        ],
+          'Apple Watch Ultra 2 thiết kế vỏ Titanium 49mm chống ăn mòn siêu bền chuẩn quân đội MIL-STD 810H. Màn hình Retina Always-On sáng kỷ lục 3000 nits đọc rõ dưới ánh nắng gắt. Trang bị chip S9 SiP với tính năng chạm hai lần (Double Tap) kỳ diệu, GPS tần số kép độ chính xác hàng đầu thị trường, còi báo động khẩn cấp 86 decibel và khả năng lặn giải trí tới độ sâu 40 mét chuẩn EN13319.',
+        basePrice: 21990000,
+        status: 'active',
+        category: categories['Đồng hồ thông minh'],
+      }),
+    );
+    await attachImages(awu2, [
+      'https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=1000',
+      'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=1000',
+      'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=1000',
+    ]);
+
+    const awuColors = [
+      {
+        val: 'Natural Titanium',
+        code: '#9E978E',
+        img: 'https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=800',
+        tag: 'NAT',
       },
       {
-        name: 'Apple Watch Series 9',
+        val: 'Black Titanium',
+        code: '#1D1D1F',
+        img: 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=800',
+        tag: 'BLK',
+      },
+    ];
+    const awuStraps = [
+      { val: 'Dây Alpine Loop', tag: 'ALP' },
+      { val: 'Dây Trail Loop', tag: 'TRA' },
+      { val: 'Dây Ocean Band', tag: 'OCE' },
+    ];
+    const awuSizeOv = await createOptionVal(types['Kích thước'], '49mm', null, null, 1);
+
+    const awuColorOvs = await Promise.all(
+      awuColors.map((c, idx) =>
+        createOptionVal(types['Màu sắc'], c.val, c.code, c.img, idx + 1),
+      ),
+    );
+    const awuStrapOvs = await Promise.all(
+      awuStraps.map((s, idx) =>
+        createOptionVal(types['Loại dây'], s.val, null, null, idx + 1),
+      ),
+    );
+
+    for (let c = 0; c < awuColors.length; c++) {
+      for (let s = 0; s < awuStraps.length; s++) {
+        await createVariantWithValues(
+          awu2,
+          `AWU2-${awuColors[c].tag}-${awuStraps[s].tag}-49`,
+          21990000,
+          20,
+          [awuColorOvs[c], awuStrapOvs[s], awuSizeOv],
+        );
+      }
+    }
+    products.push(awu2);
+
+    // =========================================================================
+    // 7. AirPods Pro 2 (USB-C)
+    // =========================================================================
+    const app2 = await this.productRepository.save(
+      this.productRepository.create({
+        name: 'AirPods Pro 2 (USB-C)',
         description:
-          'Apple Watch Series 9 với chip S9 SiP, màn hình Always-On, theo dõi sức khỏe toàn diện.',
-        price: 11990000,
-        stock: 60,
-        categoryIndex: 4,
-        images: [
-          'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400',
-        ],
+          'AirPods Pro 2 trang bị chip Apple H2 mang đến khả năng Chủ Động Khử Tiếng Ồn (ANC) thông minh gấp 2 lần so với thế hệ trước. Tính năng Nhận Biết Cuộc Hội Thoại tự động giảm âm lượng khi bạn bắt đầu nói chuyện với người xung quanh. Hộp sạc MagSafe trang bị chip U1 tìm kiếm chính xác, loa phát tín hiệu và cổng sạc USB-C hiện đại, chống bụi và chống nước IP54.',
+        basePrice: 6190000,
+        status: 'active',
+        category: categories['Âm thanh'],
+      }),
+    );
+    await attachImages(app2, [
+      'https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=1000',
+      'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=1000',
+      'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=1000',
+    ]);
+
+    const appColorOv = await createOptionVal(
+      types['Màu sắc'],
+      'Trắng (White)',
+      '#FFFFFF',
+      'https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=800',
+      1,
+    );
+    const appPortOv = await createOptionVal(types['Cổng kết nối'], 'USB-C', null, null, 1);
+
+    await createVariantWithValues(
+      app2,
+      'APP2-USBC-WHT',
+      6190000,
+      100,
+      [appColorOv, appPortOv],
+    );
+    products.push(app2);
+
+    // =========================================================================
+    // 8. AirPods Max
+    // =========================================================================
+    const apm = await this.productRepository.save(
+      this.productRepository.create({
+        name: 'AirPods Max',
+        description:
+          'Tai nghe over-ear thượng hạng AirPods Max kết hợp giữa âm thanh có độ trung thực cực cao Hi-Fi và tính năng Chủ Động Khử Tiếng Ồn hàng đầu ngành công nghiệp. Màng loa dynamic 40mm do Apple tự thiết kế tạo ra dải tần rộng với độ méo tiếng siêu thấp. Khung vòm bằng lưới thép không gỉ thoáng khí, đệm tai bằng bọt hoạt tính cách âm hoàn hảo cùng núm xoay Digital Crown điều khiển tinh tế.',
+        basePrice: 13990000,
+        status: 'active',
+        category: categories['Âm thanh'],
+      }),
+    );
+    await attachImages(apm, [
+      'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=1000',
+      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=1000',
+      'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=1000',
+    ]);
+
+    const apmColors = [
+      {
+        val: 'Midnight',
+        code: '#191F26',
+        img: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800',
+        tag: 'MID',
       },
       {
-        name: 'Samsung Galaxy Watch 6 Classic',
-        description:
-          'Galaxy Watch 6 Classic với vòng bezel xoay, màn hình Super AMOLED, theo dõi sức khỏe nâng cao.',
-        price: 9990000,
-        stock: 45,
-        categoryIndex: 4,
-        images: [
-          'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=400',
-        ],
+        val: 'Starlight',
+        code: '#F0E5D8',
+        img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800',
+        tag: 'STA',
       },
       {
-        name: 'Garmin Fenix 7X',
-        description:
-          'Đồng hồ thể thao Garmin Fenix 7X với GPS đa băng tần, bản đồ TopoActive, pin lên đến 28 ngày.',
-        price: 18990000,
-        stock: 20,
-        categoryIndex: 4,
-        images: [
-          'https://images.unsplash.com/photo-1539874754764-5a96559165b0?w=400',
-        ],
+        val: 'Blue',
+        code: '#2563EB',
+        img: 'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=800',
+        tag: 'BLU',
+      },
+      {
+        val: 'Orange',
+        code: '#E05338',
+        img: 'https://images.unsplash.com/photo-1545127398-14699f92334b?w=800',
+        tag: 'ORA',
+      },
+      {
+        val: 'Purple',
+        code: '#8B5CF6',
+        img: 'https://images.unsplash.com/photo-1572536147248-ac59a8abfa4b?w=800',
+        tag: 'PUR',
       },
     ];
 
-    const products: Product[] = [];
-    for (const data of productsData) {
-      const { categoryIndex, images, ...productData } = data;
+    const apmColorOvs = await Promise.all(
+      apmColors.map((c, idx) =>
+        createOptionVal(types['Màu sắc'], c.val, c.code, c.img, idx + 1),
+      ),
+    );
 
-      // Create product
-      const product = this.productRepository.create({
-        ...productData,
-        category: categories[categoryIndex],
-      });
-      const savedProduct = await this.productRepository.save(product);
-
-      // Create product images
-      for (let i = 0; i < images.length; i++) {
-        const productImage = this.productImageRepository.create({
-          imageUrl: images[i],
-          isPrimary: i === 0,
-          displayOrder: i,
-          product: savedProduct,
-        });
-        await this.productImageRepository.save(productImage);
-      }
-
-      products.push(savedProduct);
+    for (let c = 0; c < apmColors.length; c++) {
+      await createVariantWithValues(
+        apm,
+        `APM-${apmColors[c].tag}`,
+        13990000,
+        25,
+        [apmColorOvs[c]],
+      );
     }
+    products.push(apm);
+
+    // =========================================================================
+    // 9. Apple Watch Series 9
+    // =========================================================================
+    const aws9 = await this.productRepository.save(
+      this.productRepository.create({
+        name: 'Apple Watch Series 9',
+        description:
+          'Apple Watch Series 9 trang bị chip S9 SiP mạnh mẽ với 5.6 tỷ bóng bán dẫn, mang lại màn hình Retina sáng tới 2000 nits. Cảm biến đo nồng độ oxy trong máu SpO2, điện tâm đồ ECG và cảm biến nhiệt độ hỗ trợ theo dõi chu kỳ sức khỏe chuyên sâu.',
+        basePrice: 10990000,
+        status: 'active',
+        category: categories['Đồng hồ thông minh'],
+      }),
+    );
+    await attachImages(aws9, [
+      'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=1000',
+      'https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=1000',
+    ]);
+
+    const awsColors = [
+      {
+        val: 'Midnight',
+        code: '#191F26',
+        img: 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=800',
+        tag: 'MID',
+      },
+      {
+        val: 'Starlight',
+        code: '#F0E5D8',
+        img: 'https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=800',
+        tag: 'STA',
+      },
+      {
+        val: 'Silver',
+        code: '#E3E4E5',
+        img: 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=800',
+        tag: 'SIL',
+      },
+    ];
+    const awsSizes = [
+      { val: '41mm', price: 10990000, tag: '41' },
+      { val: '45mm', price: 11990000, tag: '45' },
+    ];
+
+    const awsColorOvs = await Promise.all(
+      awsColors.map((c, idx) =>
+        createOptionVal(types['Màu sắc'], c.val, c.code, c.img, idx + 1),
+      ),
+    );
+    const awsSizeOvs = await Promise.all(
+      awsSizes.map((s, idx) =>
+        createOptionVal(types['Kích thước'], s.val, null, null, idx + 1),
+      ),
+    );
+
+    for (let c = 0; c < awsColors.length; c++) {
+      for (let s = 0; s < awsSizes.length; s++) {
+        await createVariantWithValues(
+          aws9,
+          `AWS9-${awsColors[c].tag}-${awsSizes[s].tag}`,
+          awsSizes[s].price,
+          30,
+          [awsColorOvs[c], awsSizeOvs[s]],
+        );
+      }
+    }
+    products.push(aws9);
+
+    // =========================================================================
+    // 10. Củ sạc nhanh Apple 20W USB-C
+    // =========================================================================
+    const adapter20w = await this.productRepository.save(
+      this.productRepository.create({
+        name: 'Củ sạc nhanh Apple 20W USB-C',
+        description:
+          'Củ sạc USB-C công suất 20W chính hãng Apple cho khả năng sạc nhanh an toàn vượt trội, nạp 50% pin cho iPhone chỉ trong 30 phút. Thiết kế chuẩn cắm công thái học, bảo vệ quá nhiệt và chống đoản mạch toàn diện.',
+        basePrice: 590000,
+        status: 'active',
+        category: categories['Phụ kiện'],
+      }),
+    );
+    await attachImages(adapter20w, [
+      'https://images.unsplash.com/photo-1609081219090-a6d81d3085bf?w=1000',
+      'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=1000',
+    ]);
+
+    const adapterColorOv = await createOptionVal(
+      types['Màu sắc'],
+      'Trắng (White)',
+      '#FFFFFF',
+      'https://images.unsplash.com/photo-1609081219090-a6d81d3085bf?w=800',
+      1,
+    );
+    await createVariantWithValues(
+      adapter20w,
+      'ADAPTER-20W-WHT',
+      590000,
+      150,
+      [adapterColorOv],
+    );
+    products.push(adapter20w);
+
+    // =========================================================================
+    // 11. Cáp sạc MagSafe 3 Apple (2m)
+    // =========================================================================
+    const magsafeCable = await this.productRepository.save(
+      this.productRepository.create({
+        name: 'Cáp sạc MagSafe 3 Apple (2m)',
+        description:
+          'Cáp sạc MagSafe 3 chính hãng với thiết kế bọc dù đan chéo tăng độ bền gấp nhiều lần, đầu kết nối từ tính tự hít nhạy bén và đèn LED hiển thị trạng thái sạc pin thông minh. Chiều dài tiêu chuẩn 2 mét tiện dụng.',
+        basePrice: 1190000,
+        status: 'active',
+        category: categories['Phụ kiện'],
+      }),
+    );
+    await attachImages(magsafeCable, [
+      'https://images.unsplash.com/photo-1609081219090-a6d81d3085bf?w=1000',
+      'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=1000',
+    ]);
+
+    const msColors = [
+      {
+        val: 'Space Black',
+        code: '#2E2F32',
+        img: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800',
+        tag: 'SB',
+      },
+      {
+        val: 'Silver',
+        code: '#E3E4E5',
+        img: 'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=800',
+        tag: 'SIL',
+      },
+      {
+        val: 'Midnight',
+        code: '#191F26',
+        img: 'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=800',
+        tag: 'MID',
+      },
+      {
+        val: 'Starlight',
+        code: '#F0E5D8',
+        img: 'https://images.unsplash.com/photo-1516387938699-a93567ec168e?w=800',
+        tag: 'STA',
+      },
+    ];
+
+    const msColorOvs = await Promise.all(
+      msColors.map((c, idx) =>
+        createOptionVal(types['Màu sắc'], c.val, c.code, c.img, idx + 1),
+      ),
+    );
+
+    for (let c = 0; c < msColors.length; c++) {
+      await createVariantWithValues(
+        magsafeCable,
+        `MAGSAFE3-${msColors[c].tag}`,
+        1190000,
+        80,
+        [msColorOvs[c]],
+      );
+    }
+    products.push(magsafeCable);
 
     return products;
   }

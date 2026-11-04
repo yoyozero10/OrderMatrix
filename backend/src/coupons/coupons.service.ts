@@ -46,6 +46,24 @@ export class CouponsService {
     return Math.max(0, Math.round(discount * 100) / 100);
   }
 
+  async getActiveCoupons(): Promise<Coupon[]> {
+    const coupons = await this.couponRepository.find({
+      where: { isActive: true },
+      order: { discountValue: 'DESC' },
+    });
+    const now = new Date();
+    return coupons.filter((c) => {
+      const start = new Date(c.startDate);
+      const end = new Date(c.endDate);
+      const withinDate = now >= start && now <= end;
+      const withinLimit =
+        c.usageLimit === null ||
+        c.usageLimit === undefined ||
+        c.usedCount < c.usageLimit;
+      return withinDate && withinLimit;
+    });
+  }
+
   async applyCoupon(
     userId: string,
     code: string,

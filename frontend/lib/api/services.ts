@@ -263,6 +263,9 @@ export const adminApi = {
 };
 
 export const couponApi = {
+  getActiveCoupons() {
+    return apiRequest<Coupon[]>("/coupons");
+  },
   apply(body: ApplyCouponRequest) {
     return apiRequest<ApplyCouponResponse>("/coupons/apply", {
       method: "POST",

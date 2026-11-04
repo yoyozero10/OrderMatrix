@@ -167,6 +167,28 @@ export default function HomePage() {
           Trải nghiệm mua sắm mượt mà, đồng bộ giỏ hàng theo phiên và kiểm soát hàng tồn kho đa chiều với độ trễ tối thiểu.
         </p>
 
+        {/* Active Promotional Vouchers Pill */}
+        <div className="mx-auto mt-6 flex max-w-fit items-center flex-wrap justify-center gap-2 rounded-full border border-black/[0.08] bg-[#fbfbfd] p-1.5 px-3.5 text-xs shadow-sm">
+          <span className="flex items-center gap-1.5 font-semibold text-[#0071e3]">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+              <line x1="7" y1="7" x2="7.01" y2="7" />
+            </svg>
+            Ưu đãi đang chạy:
+          </span>
+          <span className="rounded-full bg-white border border-black/[0.08] px-2.5 py-0.5 font-mono font-bold text-[#1d1d1f]">
+            APPLE10 (-10%)
+          </span>
+          <span className="text-[#86868b]">·</span>
+          <span className="rounded-full bg-white border border-black/[0.08] px-2.5 py-0.5 font-mono font-bold text-[#30d158]">
+            APPLE500K (-500k)
+          </span>
+          <span className="text-[#86868b]">·</span>
+          <span className="rounded-full bg-white border border-black/[0.08] px-2.5 py-0.5 font-mono font-bold text-[#0071e3]">
+            TECH5 (-5%)
+          </span>
+        </div>
+
         <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
           <Button
             size="lg"

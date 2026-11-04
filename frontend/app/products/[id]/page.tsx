@@ -486,6 +486,33 @@ export default function ProductDetailPage() {
                 </span>
               </div>
 
+              {/* Promotional Voucher Banner */}
+              <div className="rounded-[14px] border border-[#0071e3]/20 bg-[#0071e3]/5 p-3.5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-[#0071e3]">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+                      <line x1="7" y1="7" x2="7.01" y2="7" />
+                    </svg>
+                    <span>Ưu đãi thanh toán độc quyền</span>
+                  </div>
+                  <span className="text-[10px] text-[#6e6e73]">Tự động áp dụng tại giỏ hàng</span>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <div className="flex items-center gap-2 rounded-full border border-black/[0.08] bg-white px-3 py-1 shadow-sm text-xs">
+                    <span className="font-mono font-bold text-[#0071e3]">APPLE10</span>
+                    <span className="text-[#1d1d1f] text-[11px]">Giảm 10% (tối đa 2.000.000 ₫)</span>
+                  </div>
+                  {currentPrice >= 10000000 && (
+                    <div className="flex items-center gap-2 rounded-full border border-black/[0.08] bg-white px-3 py-1 shadow-sm text-xs">
+                      <span className="font-mono font-bold text-[#30d158]">APPLE500K</span>
+                      <span className="text-[#1d1d1f] text-[11px]">Giảm 500.000 ₫</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* Dynamic Option Groups (Màu sắc, Dung lượng, Dây đeo...) */}
               {optionGroups.length > 0 && (
                 <div className="space-y-4 pt-2">

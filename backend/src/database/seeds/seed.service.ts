@@ -198,6 +198,18 @@ export class SeedService {
 
     const coupons = [
       couponRepo.create({
+        code: 'APPLE10',
+        discountType: 'percentage',
+        discountValue: 10,
+        maxDiscountAmount: 2000000,
+        minOrderValue: 1000000,
+        usageLimit: 500,
+        userUsageLimit: 1,
+        startDate: new Date('2026-01-01'),
+        endDate: nextYear,
+        isActive: true,
+      }),
+      couponRepo.create({
         code: 'WELCOME10',
         discountType: 'percentage',
         discountValue: 10,

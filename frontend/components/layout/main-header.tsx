@@ -48,6 +48,20 @@ export function MainHeader() {
             Sản phẩm
           </Link>
           <Link
+            href="/canvas"
+            className={cn(
+              "group relative flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-medium transition",
+              pathname.startsWith("/canvas")
+                ? "bg-white text-[#1d1d1f] shadow-sm"
+                : "text-[#6e6e73] hover:text-[#1d1d1f]"
+            )}
+          >
+            <span>Setup Canvas</span>
+            <span className="rounded-full bg-[#0071e3]/10 px-1.5 py-0.5 text-[10px] font-semibold text-[#0071e3] transition group-hover:bg-[#0071e3] group-hover:text-white">
+              Mới
+            </span>
+          </Link>
+          <Link
             href="/orders"
             className={cn(
               "rounded-full px-3.5 py-1.5 text-[13px] font-medium transition",

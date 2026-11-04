@@ -356,3 +356,58 @@ export interface ApplyCouponResponse {
   discountAmount: number;
   finalTotal: number;
 }
+
+// ----------------------------------------------------
+// Compatibility & Apple Setup Canvas
+// ----------------------------------------------------
+
+export interface ValidateSetupRequest {
+  variantIds: string[];
+}
+
+export interface CompatibilityPowerItem {
+  id: string;
+  name: string;
+  type: "consumer" | "provider";
+  powerWatts: number;
+  minWatts?: number;
+  maxWatts?: number;
+}
+
+export interface CompatibilityWarning {
+  level: "warning" | "error" | "info";
+  title: string;
+  message: string;
+}
+
+export interface CompatibilityReport {
+  isCompatible: boolean;
+  power: {
+    totalRequiredWatts: number;
+    totalSuppliedWatts: number;
+    balanceWatts: number;
+    status: "sufficient" | "deficit" | "none";
+    details: CompatibilityPowerItem[];
+  };
+  colorHarmony: {
+    score: number; // 0 - 100
+    theme: string;
+    dominantColors: string[];
+    isHarmonious: boolean;
+  };
+  connectivity: {
+    portsMatched: boolean;
+    missingCables: string[];
+    notes: string[];
+  };
+  warnings: CompatibilityWarning[];
+  bundle: {
+    totalPrice: number;
+    eligibleForBundle: boolean;
+    suggestedCoupon?: string;
+    discountPercent?: number;
+    discountAmount?: number;
+    finalPrice?: number;
+    message?: string;
+  };
+}

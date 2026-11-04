@@ -6,7 +6,7 @@
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.4-38B2AC?style=flat&logo=tailwind-css)](https://tailwindcss.com/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=flat&logo=mysql)](https://www.mysql.com/)
 [![TypeORM](https://img.shields.io/badge/TypeORM-0.3-FE0979?style=flat&logo=typeorm)](https://typeorm.io/)
-[![Jest](https://img.shields.io/badge/Jest-54%20Tests%20Passed-C21325?style=flat&logo=jest)](https://jestjs.io/)
+[![Jest](https://img.shields.io/badge/Jest-71%20Tests%20Passed-C21325?style=flat&logo=jest)](https://jestjs.io/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat)](LICENSE)
 
 An enterprise-grade, high-concurrency e-commerce order management and multi-dimensional SKU matrix platform. Built with **Next.js 14 App Router**, **NestJS 11**, and **MySQL 8** with **TypeORM**, featuring strict transaction isolation, pessimistic write locking, a promotions engine, and an **Apple Liquid Glass** design system.
@@ -129,6 +129,15 @@ Built under strict aesthetic principles inspired by Apple's Human Interface Guid
 - **Micro-Interactions:** Physics-based pill button compressions (`:active { transform: scale(0.98); }`), frosted glass sticky navigation headers (`bg-[#f5f5f7]/80 backdrop-blur-xl`).
 - **Monoline Vector Iconography:** Monoline SVG icons (`stroke-width: 1.75`, `stroke="currentColor"`, rounded stroke caps/joins).
 - **Tabular Numerics & Color Swatches:** Monospace tabular numbers for prices (`[font-variant-numeric:tabular-nums]`) and authentic Apple color swatches with active ring indicators (`ring-2 ring-[#0071e3] ring-offset-2`).
+
+### 5. Apple Setup Canvas & AI Compatibility Engine
+
+An interactive virtual workstation (`/canvas`) enabling users to compose desktop setups with real-time intelligence:
+
+- **Virtual Desk Surface:** Dot-grid workspace (`#f5f5f7`) with draggable Apple devices and macOS-inspired floating Dock.
+- **Power Validation Meter:** Calculates wattage balance between charger output and device requirements, raising warning alerts if an underpowered adapter (e.g. 20W USB-C) is paired with a power-hungry flagship (e.g. MacBook Pro 16" requiring 96W-140W).
+- **Color Harmony Score:** Evaluates aesthetic coherence (0-100%) across finishes (Titanium, Space Black, Silver).
+- **1-Click Bundle Checkout:** Aggregates placed SKUs into the cart with automated promotion discounts (e.g. `STUDIOBUNDLE` -10%).
 
 ---
 
@@ -287,6 +296,8 @@ Interactive Swagger UI documentation is available at:
 | **Orders** | `POST` | `/api/orders` | Place order with atomic stock deduction | Bearer JWT |
 | **Orders** | `GET` | `/api/orders/my-orders`| Retrieve user order history | Bearer JWT |
 | **Coupons** | `POST` | `/api/coupons/apply` | Validate & calculate voucher discount | Bearer JWT |
+| **Compatibility** | `POST` | `/api/compatibility/validate` | Real-time hardware power, port & harmony check | Public |
+| **Compatibility** | `GET` | `/api/compatibility/rules` | Apple hardware specifications catalog | Public |
 | **Admin** | `GET` | `/api/admin/coupons` | List all promotional vouchers | Admin JWT |
 | **Admin** | `POST` | `/api/admin/coupons` | Create voucher with usage rules | Admin JWT |
 | **Admin** | `PATCH`| `/api/admin/coupons/:id/toggle` | Toggle active status | Admin JWT |
@@ -306,20 +317,21 @@ npm test
 
 ```text
 PASS src/app.controller.spec.ts
-PASS src/cart/cart.service.spec.ts
 PASS src/categories/categories.service.spec.ts
+PASS src/compatibility/compatibility.service.spec.ts
+PASS src/cart/cart.service.spec.ts
 PASS src/users/users.service.spec.ts
 PASS src/coupons/coupons.service.spec.ts
-PASS src/auth/auth.service.spec.ts
 PASS src/orders/orders.service.spec.ts
-PASS src/products/products.service.spec.ts
+PASS src/auth/auth.service.spec.ts
 PASS src/users/users.controller.spec.ts
+PASS src/products/products.service.spec.ts
 PASS src/auth/auth.controller.spec.ts
 
-Test Suites: 10 passed, 10 total
-Tests:       54 passed, 54 total
+Test Suites: 11 passed, 11 total
+Tests:       71 passed, 71 total
 Snapshots:   0 total
-Time:        2.42 s
+Time:        2.29 s
 ```
 
 ---

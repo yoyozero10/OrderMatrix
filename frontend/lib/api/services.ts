@@ -9,6 +9,7 @@ import type {
   ApplyCouponResponse,
   Cart,
   Category,
+  CompatibilityReport,
   Coupon,
   CreateOrderRequest,
   LoginRequest,
@@ -24,7 +25,8 @@ import type {
   RegisterResponse,
   User,
   UserRole,
-  UserStatus
+  UserStatus,
+  ValidateSetupRequest
 } from "@/lib/api/types";
 
 export const authApi = {
@@ -304,5 +306,17 @@ export const adminCouponApi = {
   },
   deleteCoupon(token: string, id: string) {
     return apiRequest<{ message: string }>(`/admin/coupons/${id}`, { method: "DELETE", token });
+  }
+};
+
+export const compatibilityApi = {
+  validate(body: ValidateSetupRequest) {
+    return apiRequest<CompatibilityReport>("/compatibility/validate", {
+      method: "POST",
+      body
+    });
+  },
+  getRules() {
+    return apiRequest<Record<string, unknown>>("/compatibility/rules");
   }
 };

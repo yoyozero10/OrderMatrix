@@ -14,6 +14,7 @@ import { CartModule } from './cart/cart.module';
 import { OrdersModule } from './orders/orders.module';
 import { OptionsModule } from './options/options.module';
 import { CouponsModule } from './coupons/coupons.module';
+import { CompatibilityModule } from './compatibility/compatibility.module';
 import { LoggerModule } from './common/logger';
 import { HttpExceptionFilter } from './common/filters';
 import { LoggingInterceptor } from './common/interceptors';
@@ -56,6 +57,7 @@ import { LoggingInterceptor } from './common/interceptors';
     OrdersModule,
     OptionsModule,
     CouponsModule,
+    CompatibilityModule,
   ],
   controllers: [AppController, HealthController],
   providers: [
